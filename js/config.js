@@ -21,9 +21,9 @@ export const storage = getStorage(app);
 // One-time developer configuration for cloud providers.
 // End users should only use the connect/disconnect buttons from the admin screen.
 export const cloudOAuthConfig = {
-  googleClientId: '',
-  googleApiKey: '',
-  googleAppId: '',
+  googleClientId: '307661492912-50gael7mr76n0d1f4fmetq7n3tl51vjc.apps.googleusercontent.com',
+  googleApiKey: 'AIzaSyBw92wqgtKPIFSf6VYP4G7ntbm4tH5ZZAs',
+  googleAppId: '644227108524-9j2m2aesb34l28eb0buku6ev7a3p9qml.apps.googleusercontent.com',
   googleFolderId: '',
   oneDriveClientId: '',
   oneDriveTenantId: 'common',

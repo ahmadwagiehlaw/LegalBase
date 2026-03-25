@@ -1,6 +1,12 @@
 import { db } from './config.js';
 import { collection, getDocs, addDoc, doc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+import { storage } from './config.js';
 import { UI } from './ui.js';
+import { Utils } from './utils.js';
+import { CloudStorageModule } from './cloud-storage.js';
+import { GoogleDriveModule } from './google-drive.js';
+import { OneDriveModule } from './onedrive.js';
 
 export const RollsModule = {
     rolls: [],
@@ -56,6 +62,22 @@ export const RollsModule = {
                             <label>رابط الملف / ملاحظات</label>
                             <input type="text" id="roll-link" placeholder="رابط الملف المرفوع أو ملاحظات..." required>
                         </div>
+                        <div class="form-group">
+                            <label>مزوّد الرفع</label>
+                            <select id="roll-provider" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);">
+                                <option value="firebase">Firebase Storage</option>
+                                <option value="google_drive">Google Drive</option>
+                                <option value="onedrive">OneDrive</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="roll-file-group">
+                            <label>ملف الرول PDF</label>
+                            <input type="file" id="roll-file" accept=".pdf,application/pdf">
+                        </div>
+                        <div class="form-group hidden" id="roll-cloud-link-group">
+                            <label>رابط الملف السحابي</label>
+                            <input type="url" id="roll-cloud-link" placeholder="https://drive.google.com/... أو https://onedrive.live.com/...">
+                        </div>
                         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
                             <button type="button" id="close-roll-modal" class="btn" style="background:var(--text-muted); color:white;">إلغاء</button>
                             <button type="submit" class="btn btn-primary">حفظ <i class="fas fa-save"></i></button>
@@ -64,6 +86,23 @@ export const RollsModule = {
                 </div>
             </div>
         `;
+    },
+
+    syncUploadModeUI: () => {
+        const provider = document.getElementById('roll-provider')?.value || 'firebase';
+        const fileGroup = document.getElementById('roll-file-group');
+        const cloudLinkGroup = document.getElementById('roll-cloud-link-group');
+        const fileInput = document.getElementById('roll-file');
+        const cloudLinkInput = document.getElementById('roll-cloud-link');
+        const canDirectGoogleUpload = provider === 'google_drive' && CloudStorageModule.isDirectUploadConfigured('google_drive');
+        const canDirectOneDriveUpload = provider === 'onedrive' && CloudStorageModule.isDirectUploadConfigured('onedrive');
+        const useCloudLink = (provider === 'google_drive' && !canDirectGoogleUpload)
+            || (provider === 'onedrive' && !canDirectOneDriveUpload);
+
+        fileGroup?.classList.toggle('hidden', useCloudLink);
+        cloudLinkGroup?.classList.toggle('hidden', !useCloudLink);
+        if (fileInput) fileInput.required = !useCloudLink;
+        if (cloudLinkInput) cloudLinkInput.required = useCloudLink;
     },
 
     loadRolls: async () => {
@@ -118,18 +157,79 @@ export const RollsModule = {
         const modal = document.getElementById('roll-modal');
         document.getElementById('add-roll-btn')?.addEventListener('click', () => modal.classList.remove('hidden'));
         document.getElementById('close-roll-modal')?.addEventListener('click', () => modal.classList.add('hidden'));
+        document.getElementById('roll-provider')?.addEventListener('change', RollsModule.syncUploadModeUI);
+        RollsModule.syncUploadModeUI();
         
         document.getElementById('roll-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const rollData = {
                 date: document.getElementById('roll-date').value,
                 court: document.getElementById('roll-court').value,
-                link: document.getElementById('roll-link').value,
                 createdAt: serverTimestamp()
             };
+            const provider = document.getElementById('roll-provider')?.value || 'firebase';
+            const file = document.getElementById('roll-file')?.files?.[0];
+            const cloudLink = document.getElementById('roll-cloud-link')?.value.trim() || '';
+            const notes = document.getElementById('roll-link').value;
+            const canDirectGoogleUpload = provider === 'google_drive' && CloudStorageModule.isDirectUploadConfigured('google_drive');
+            const canDirectOneDriveUpload = provider === 'onedrive' && CloudStorageModule.isDirectUploadConfigured('onedrive');
+            const useCloudLink = (provider === 'google_drive' && !canDirectGoogleUpload)
+                || (provider === 'onedrive' && !canDirectOneDriveUpload);
 
             try {
-                await addDoc(collection(db, "rolls"), rollData);
+                if (useCloudLink) {
+                    await addDoc(collection(db, "rolls"), {
+                        ...rollData,
+                        link: cloudLink,
+                        cloudProvider: provider,
+                        fileName: file?.name || '',
+                        fileType: 'cloud-link'
+                    });
+                } else if (provider === 'google_drive' && file) {
+                    const uploaded = await GoogleDriveModule.uploadFile(file, CloudStorageModule.getResolvedSettings(), { fileName: file.name });
+                    await addDoc(collection(db, "rolls"), {
+                        ...rollData,
+                        link: uploaded.webViewLink || uploaded.webContentLink,
+                        cloudProvider: 'google_drive',
+                        fileName: uploaded.fileName,
+                        fileType: 'application/pdf',
+                        storagePath: uploaded.fileId
+                    });
+                } else if (provider === 'onedrive' && file) {
+                    const uploaded = await OneDriveModule.uploadFile(file, CloudStorageModule.getResolvedSettings(), { fileName: file.name });
+                    await addDoc(collection(db, "rolls"), {
+                        ...rollData,
+                        link: uploaded.webUrl || uploaded.downloadUrl,
+                        cloudProvider: 'onedrive',
+                        fileName: uploaded.fileName,
+                        fileType: 'application/pdf',
+                        storagePath: uploaded.fileId
+                    });
+                } else if (file) {
+                    const uniqueName = `${Date.now()}_${file.name}`;
+                    const storagePath = `rolls/${uniqueName}`;
+                    const fileRef = ref(storage, storagePath);
+                    const uploadTask = uploadBytesResumable(fileRef, file);
+                    await new Promise((resolve, reject) => {
+                        uploadTask.on('state_changed', null, reject, resolve);
+                    });
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    await addDoc(collection(db, "rolls"), {
+                        ...rollData,
+                        link: notes || downloadURL,
+                        cloudProvider: 'firebase',
+                        fileName: file.name,
+                        fileType: file.type || 'application/pdf',
+                        storagePath,
+                        downloadURL
+                    });
+                } else {
+                    await addDoc(collection(db, "rolls"), {
+                        ...rollData,
+                        link: notes,
+                        cloudProvider: 'external'
+                    });
+                }
                 UI.showToast("تم إضافة الرول بنجاح", "success");
                 modal.classList.add('hidden');
                 RollsModule.loadRolls();
@@ -142,7 +242,7 @@ export const RollsModule = {
         document.getElementById('search-rolls')?.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = RollsModule.rolls.filter(r => 
-                r.court.toLowerCase().includes(term) || r.date.includes(term)
+                String(r.court || '').toLowerCase().includes(term) || String(r.date || '').includes(term)
             );
             RollsModule.renderTable(filtered);
         });

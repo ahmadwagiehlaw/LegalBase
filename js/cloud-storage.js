@@ -23,6 +23,15 @@ const PRECONFIGURED_SETTINGS = {
     oneDriveFolderPath: cloudOAuthConfig.oneDriveFolderPath || ''
 };
 
+const mergeSettings = (base, overrides = {}) => {
+    const result = { ...base };
+    Object.entries(overrides || {}).forEach(([key, value]) => {
+        if (value === '' || value === null || value === undefined) return;
+        result[key] = value;
+    });
+    return result;
+};
+
 export const CloudStorageModule = {
     settings: { ...DEFAULT_SETTINGS },
 
@@ -30,7 +39,7 @@ export const CloudStorageModule = {
         try {
             const snap = await getDoc(doc(db, 'settings', 'cloudStorage'));
             this.settings = snap.exists()
-                ? { ...DEFAULT_SETTINGS, ...PRECONFIGURED_SETTINGS, ...snap.data() }
+                ? mergeSettings({ ...DEFAULT_SETTINGS, ...PRECONFIGURED_SETTINGS }, snap.data())
                 : { ...DEFAULT_SETTINGS, ...PRECONFIGURED_SETTINGS };
         } catch (error) {
             console.warn('Could not load cloud storage settings', error);
@@ -40,18 +49,16 @@ export const CloudStorageModule = {
     },
 
     async save(data) {
-        this.settings = { ...DEFAULT_SETTINGS, ...PRECONFIGURED_SETTINGS, ...data };
+        this.settings = mergeSettings({ ...DEFAULT_SETTINGS, ...PRECONFIGURED_SETTINGS }, data);
         await setDoc(doc(db, 'settings', 'cloudStorage'), this.settings);
         return this.settings;
     },
 
     getResolvedSettings(overrides = {}) {
-        return {
-            ...DEFAULT_SETTINGS,
-            ...PRECONFIGURED_SETTINGS,
-            ...this.settings,
-            ...overrides
-        };
+        return mergeSettings(
+            mergeSettings({ ...DEFAULT_SETTINGS, ...PRECONFIGURED_SETTINGS }, this.settings),
+            overrides
+        );
     },
 
     getProviderLabel(provider = this.settings.provider) {
