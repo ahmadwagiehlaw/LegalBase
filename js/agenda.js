@@ -673,6 +673,7 @@ export const AgendaModule = {
                             '<th style="max-width:110px;">' + AgendaModule.labels.decision + '</th>' +
                             '<th style="width:90px;">' + AgendaModule.labels.sessionType + '</th>' +
                             '<th style="width:92px;">' + AgendaModule.labels.status + '</th>' +
+                            '<th style="width:110px;">مكان الملف</th>' +
                             '<th style="max-width:140px;">' + AgendaModule.labels.subject + '</th>' +
                             '<th style="width:118px;">' + AgendaModule.labels.indicators + '</th>' +
                             '<th style="width:92px;">' + AgendaModule.labels.action + '</th>' +
@@ -692,6 +693,11 @@ export const AgendaModule = {
                                 '<td style="font-size:0.78rem;line-height:1.35;white-space:normal;max-width:110px;">' + (a.sessionDecision || '---') + '</td>' +
                                 '<td style="font-size:0.8rem;white-space:nowrap;">' + (a.sessionType || '---') + '</td>' +
                                 '<td><span class="badge ' + AgendaModule.getStatusBadgeClass(a.status) + '">' + (a.status || '---') + '</span></td>' +
+                                '<td><select class="file-loc-select" data-id="' + a.id + '" onchange="if(window.AppealsModule) window.AppealsModule.updateFileLocation(\'' + a.id + '\', this.value)" style="padding:4px; border-radius:4px; border:1px solid var(--border-color); background:transparent; color:var(--text-color); font-weight:bold; font-size:0.8rem; width:100px; min-width:80px; cursor:pointer;" title="مكان الملف: ' + (a.fileLocation || '') + '">' +
+                                    (window.AppealsModule ? window.AppealsModule.getFileLocations() : []).map(opt => '<option value="' + opt + '" ' + (a.fileLocation === opt ? 'selected' : '') + '>' + opt + '</option>').join('') +
+                                    '<option value="" ' + (!a.fileLocation ? 'selected' : '') + '>- حدد -</option>' +
+                                    '<option value="_edit_" style="color:red; font-weight:bold;">تعديل القائمة...</option>' +
+                                '</select></td>' +
                                 '<td style="font-size:0.8rem;line-height:1.35;white-space:normal;max-width:140px;">' + (a.subject || '---') + '</td>' +
                                 '<td><div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">' +
                                     AgendaModule.getMetaIndicators(a) +

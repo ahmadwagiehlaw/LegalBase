@@ -83,10 +83,10 @@ export const AdminModule = {
             document.getElementById(id)?.closest('.form-group')?.classList.add('hidden');
         });
 
-        const folderLabel = document.querySelector('label[for="cloud-google-folder-id"]') || document.getElementById('cloud-google-folder-id')?.closest('.form-group')?.querySelector('label');
+        const folderLabel = document.getElementById('cloud-google-folder-id')?.closest('.form-group')?.querySelector('label');
         if (folderLabel) folderLabel.textContent = 'مجلد Google Drive الافتراضي';
 
-        const oneDriveFolderLabel = document.querySelector('label[for="cloud-onedrive-folder-path"]') || document.getElementById('cloud-onedrive-folder-path')?.closest('.form-group')?.querySelector('label');
+        const oneDriveFolderLabel = document.getElementById('cloud-onedrive-folder-path')?.closest('.form-group')?.querySelector('label');
         if (oneDriveFolderLabel) oneDriveFolderLabel.textContent = 'مجلد OneDrive الافتراضي';
 
         const googleFolderGroup = document.getElementById('cloud-google-folder-id')?.closest('.form-group');
@@ -202,16 +202,12 @@ export const AdminModule = {
 
     connectCloudProvider: async (provider) => {
         try {
-            const settings = CloudStorageModule.getResolvedSettings({
-                provider,
-                useCloudLinksOnly: false
-            });
+            const settings = CloudStorageModule.getResolvedSettings({ provider, useCloudLinksOnly: false });
             if (provider === 'google_drive') {
                 await GoogleDriveModule.connect(settings);
             } else if (provider === 'onedrive') {
                 await OneDriveModule.connect(settings);
             }
-
             document.getElementById('cloud-provider').value = provider;
             document.getElementById('cloud-links-only').checked = false;
             await AdminModule.saveCloudStorage();
@@ -240,17 +236,13 @@ export const AdminModule = {
             consultantName: document.getElementById('id-consultant-name')?.value || '',
             consultantRole: document.getElementById('id-consultant-role')?.value || ''
         };
-
         try {
             await setDoc(doc(db, "settings", "identity"), data);
             AdminModule.identity = data;
-            
-            // Apply changes immediately to the header
             if(data.appTitle) document.getElementById('app-main-title').textContent = data.appTitle;
             if(data.appSubTitle) document.getElementById('app-sub-title').textContent = data.appSubTitle;
             if(data.consultantName) document.getElementById('user-name').textContent = data.consultantName;
             if(data.consultantRole) document.getElementById('user-role').textContent = data.consultantRole;
-
             UI.showToast("تم حفظ بيانات الهوية بنجاح", "success");
         } catch(e) {
             console.error(e);
@@ -270,7 +262,6 @@ export const AdminModule = {
             oneDriveFolderPath: document.getElementById('cloud-onedrive-folder-path')?.value.trim() || '',
             useCloudLinksOnly: !!document.getElementById('cloud-links-only')?.checked
         };
-
         try {
             await CloudStorageModule.save(data);
             AdminModule.cloudStorage = data;
@@ -306,14 +297,13 @@ export const AdminModule = {
             const isHidden = customTabs[tab.route]?.hidden || false;
             const customName = customTabs[tab.route]?.name || tab.defaultName;
             const disableHide = tab.route === 'settings' ? 'disabled' : '';
-            
             return `
                 <div style="border:1px solid var(--border-color); padding:10px; border-radius:8px; background:var(--surface-bg);">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
                         <input type="checkbox" id="hide-tab-${tab.route}" ${isHidden ? 'checked' : ''} ${disableHide}>
-                        <label for="hide-tab-${tab.route}" style="font-size:0.9rem; color:var(--text-secondary); cursor:pointer;">إخفاء التبويب</label>
+                        <label for="hide-tab-${tab.route}" style="font-size:0.85rem; color:var(--text-secondary); cursor:pointer;">إخفاء</label>
                     </div>
-                    <input type="text" id="name-tab-${tab.route}" class="form-control" value="${customName}" placeholder="${tab.defaultName}" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary);">
+                    <input type="text" id="name-tab-${tab.route}" class="form-control" value="${customName}" placeholder="${tab.defaultName}" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary); font-size:0.9rem;">
                 </div>
             `;
         }).join('');
@@ -325,7 +315,6 @@ export const AdminModule = {
     saveTabsSettings: () => {
         const defaultTabs = ['dashboard', 'appeals', 'agenda', 'sessions', 'tasks', 'memos', 'library', 'circulars', 'rolls', 'attachments', 'reports', 'settings'];
         const customTabs = {};
-        
         defaultTabs.forEach(route => {
             const hideCheckbox = document.getElementById(`hide-tab-${route}`);
             const nameInput = document.getElementById(`name-tab-${route}`);
@@ -336,9 +325,7 @@ export const AdminModule = {
                 };
             }
         });
-        
         const defaultScreenVal = document.getElementById('default-start-screen')?.value || 'dashboard';
-        
         localStorage.setItem('customTabs', JSON.stringify(customTabs));
         localStorage.setItem('defaultStartScreen', defaultScreenVal);
         UI.showToast("تم حفظ التخصيصات بنجاح", "success");
@@ -350,139 +337,187 @@ export const AdminModule = {
     renderBaseUI: () => {
         const container = document.getElementById('content-container');
         if (!container) return;
-        
+        const isDark = document.body.classList.contains('dark-mode');
+
         container.innerHTML = `
-            <div class="dashboard-grid">
+            <!-- Settings Tab Bar -->
+            <div style="display:flex; gap:8px; flex-wrap:wrap; border-bottom:2px solid var(--border-color); padding-bottom:14px; margin-bottom:24px;">
+                <button class="btn settings-tab-btn" data-tab="stab-data" style="background:var(--accent-color); color:white; border-radius:8px; padding:10px 18px; font-weight:600;">
+                    <i class="fas fa-list-alt"></i> البيانات والقوائم
+                </button>
+                <button class="btn settings-tab-btn" data-tab="stab-display" style="background:transparent; color:var(--text-secondary); border-radius:8px; padding:10px 18px; font-weight:600;">
+                    <i class="fas fa-paint-roller"></i> تفضيلات العرض
+                </button>
+                <button class="btn settings-tab-btn" data-tab="stab-cloud" style="background:transparent; color:var(--text-secondary); border-radius:8px; padding:10px 18px; font-weight:600;">
+                    <i class="fas fa-cloud"></i> السحابة والتخزين
+                </button>
+                <button class="btn settings-tab-btn" data-tab="stab-users" style="background:transparent; color:var(--text-secondary); border-radius:8px; padding:10px 18px; font-weight:600;">
+                    <i class="fas fa-users-cog"></i> المستخدمون
+                </button>
+            </div>
 
-                <!-- Identity Settings -->
-                <div class="grid-col-12 section-card" style="border-top: 4px solid var(--accent-color);">
-                    <div class="section-header" style="margin-bottom:20px; padding-bottom:15px;">
-                        <h3><i class="fas fa-id-card-alt" style="color:var(--accent-color);"></i> &nbsp;تخصيص هوية المنصة والترحيب</h3>
-                    </div>
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:20px;">
-                        <div class="form-group" style="margin:0;">
-                            <label>عنوان التطبيق الرئيسي</label>
-                            <input type="text" id="id-app-title" class="form-control" placeholder="مثال: نيابة شمال القاهرة" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+            <!-- TAB 1: Data & Lookups -->
+            <div id="stab-data" class="settings-tab-content" style="display:block;">
+                <div class="dashboard-grid">
+                    <div class="grid-col-12 section-card">
+                        <div class="section-header" style="margin-bottom:20px; padding-bottom:15px;">
+                            <h3><i class="fas fa-list-alt" style="color:var(--accent-color);"></i> &nbsp;القوائم المنسدلة (الدوائر والموضوعات)</h3>
                         </div>
-                        <div class="form-group" style="margin:0;">
-                            <label>العنوان الفرعي</label>
-                            <input type="text" id="id-app-subtitle" class="form-control" placeholder="مثال: المنصة القضائية المتكاملة" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+                        <div style="margin-bottom:25px;">
+                            <label style="font-weight:bold; display:block; margin-bottom:10px;">📌 الدوائر والمحاكم</label>
+                            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                                <input type="text" id="new-court" class="form-control" placeholder="أضف محكمة أو دائرة جديدة..." style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);">
+                                <button id="add-court-btn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة</button>
+                            </div>
+                            <div id="courts-list" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
                         </div>
-                        <div class="form-group" style="margin:0;">
-                            <label>اسم المستشار / المستخدم</label>
-                            <input type="text" id="id-consultant-name" class="form-control" placeholder="مثال: المستشار أحمد محمد" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+                        <div style="padding-top:20px; border-top:1px solid var(--border-color);">
+                            <label style="font-weight:bold; display:block; margin-bottom:10px;">📌 موضوعات الطعون</label>
+                            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                                <input type="text" id="new-subject" class="form-control" placeholder="مثال: إلغاء قرار إداري، تعويض..." style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);">
+                                <button id="add-subject-btn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة</button>
+                            </div>
+                            <div id="subjects-list" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
                         </div>
-                        <div class="form-group" style="margin:0;">
-                            <label>الوظيفة / اللقب</label>
-                            <input type="text" id="id-consultant-role" class="form-control" placeholder="مثال: رئيس النيابة" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+                        <div style="padding-top:20px; border-top:1px solid var(--border-color); margin-top:20px;">
+                            <div style="background:rgba(59,130,246,0.08); color:var(--text-primary); padding:14px; border-radius:10px; font-size:0.92rem; border-right:4px solid var(--accent-color);">
+                                <i class="fas fa-info-circle" style="color:var(--accent-color);"></i> &nbsp;
+                                لتعديل قوائم <strong>مكان الملف</strong> و<strong>مرحلة التقاضي</strong>، اضغط على "تعديل القائمة..." من داخل أي صفحة مباشرةً.
+                            </div>
                         </div>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end; margin-top:20px;">
-                        <button id="save-identity-btn" class="btn btn-primary">
-                            <i class="fas fa-save"></i> حفظ وتطبيق الهوية
-                        </button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Theme Settings -->
-                <div class="grid-col-4 section-card">
-                    <div class="section-header">
-                        <h3><i class="fas fa-paint-roller" style="color:var(--accent-color);"></i> &nbsp;إعدادات المظهر</h3>
-                    </div>
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label>السمة البصرية (Theme)</label>
-                        <select id="theme-select" class="form-control" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
-                            <option value="light" ${!document.body.classList.contains('dark-mode') ? 'selected' : ''}>الوضع النهاري (Light)</option>
-                            <option value="dark" ${document.body.classList.contains('dark-mode') ? 'selected' : ''}>الوضع الليلي (Dark)</option>
-                        </select>
-                    </div>
-                    <div class="alert alert-info" style="background:#e6fffa; color:#234e52; padding:15px; border-radius:8px; font-size:0.9rem;">
-                        <i class="fas fa-info-circle"></i> <strong>إدارة المستخدمين:</strong> يتم إدارتها حالياً عبر لوحة تحكم Firebase.
-                    </div>
-                </div>
-
-                <!-- Tabs Customization -->
-                <div class="grid-col-8 section-card">
-                    <div class="section-header" style="margin-bottom:20px; padding-bottom:15px;">
-                        <h3><i class="fas fa-bars" style="color:var(--accent-color);"></i> &nbsp;تخصيص التبويبات (إخفاء وتغيير الأسماء)</h3>
-                    </div>
-                    <div id="tabs-customization-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
-                        <!-- Rendered dynamically -->
-                    </div>
-                    
-                    <div style="margin-top:25px; border-top:1px solid var(--border-color); padding-top:20px;">
-                        <label style="display:block; font-weight:700; font-size:0.9rem; margin-bottom:8px; color:var(--text-primary);">شاشة البدء الافتراضية</label>
-                        <select id="default-start-screen" class="form-control" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary);">
-                            <option value="dashboard">لوحة التحكم</option>
-                            <option value="appeals">الدعاوى والطعون</option>
-                            <option value="agenda">أجندة الجلسات</option>
-                            <option value="reports">التقارير الذكية</option>
-                            <option value="tasks">إدارة المهام</option>
-                        </select>
-                    </div>
-
-                    <div style="display:flex; justify-content:flex-end; margin-top:20px;">
-                        <button id="save-tabs-btn" class="btn btn-primary"><i class="fas fa-save"></i> حفظ التخصيصات</button>
-                    </div>
-                </div>
-
-                <!-- Lookup Values -->
-                <div class="grid-col-8 section-card">
-                    <div class="section-header">
-                        <h3><i class="fas fa-list-alt" style="color:var(--accent-color);"></i> &nbsp;القوائم المنسدلة (لتسهيل إدخال البيانات)</h3>
-                    </div>
-                    
-                    <div style="margin-bottom: 25px;">
-                        <label style="font-weight:bold; display:block; margin-bottom:10px;">قائمة المحاكم والدوائر</label>
-                        <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" id="new-court" class="form-control" placeholder="أضف محكمة أو دائرة جديدة..." style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
-                            <button id="add-court-btn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة</button>
+            <!-- TAB 2: Display & Identity -->
+            <div id="stab-display" class="settings-tab-content" style="display:none;">
+                <div class="dashboard-grid">
+                    <div class="grid-col-12 section-card" style="border-top:4px solid var(--accent-color);">
+                        <div class="section-header" style="margin-bottom:20px; padding-bottom:15px;">
+                            <h3><i class="fas fa-id-card-alt" style="color:var(--accent-color);"></i> &nbsp;هوية المنصة والترحيب</h3>
                         </div>
-                        <div id="courts-list" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+                            <div class="form-group" style="margin:0;">
+                                <label>عنوان التطبيق الرئيسي</label>
+                                <input type="text" id="id-app-title" class="form-control" placeholder="مثال: نيابة شمال القاهرة" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>العنوان الفرعي</label>
+                                <input type="text" id="id-app-subtitle" class="form-control" placeholder="مثال: المنصة القضائية المتكاملة" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>اسم المستشار / المستخدم</label>
+                                <input type="text" id="id-consultant-name" class="form-control" placeholder="مثال: المستشار أحمد محمد" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>الوظيفة / اللقب</label>
+                                <input type="text" id="id-consultant-role" class="form-control" placeholder="مثال: رئيس النيابة" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+                            <button id="save-identity-btn" class="btn btn-primary"><i class="fas fa-save"></i> حفظ وتطبيق الهوية</button>
+                        </div>
                     </div>
 
-                    <div style="padding-top:20px; border-top:1px solid var(--border-color);">
-                        <label style="font-weight:bold; display:block; margin-bottom:10px;">قائمة موضوعات الطعون</label>
-                        <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" id="new-subject" class="form-control" placeholder="مثال: إلغاء قرار إداري، تعويض..." style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
-                            <button id="add-subject-btn" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة</button>
+                    <div class="grid-col-4 section-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-paint-roller" style="color:var(--accent-color);"></i> &nbsp;السمة البصرية</h3>
                         </div>
-                        <div id="subjects-list" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
-                    </div>
-                <div class="grid-col-12 section-card" style="border-top:4px solid var(--nav-bg);">
-                    <div class="section-header" style="margin-bottom:20px; padding-bottom:15px;">
-                        <h3><i class="fas fa-cloud" style="color:var(--nav-bg);"></i> &nbsp;\u0627\u0644\u062a\u062e\u0632\u064a\u0646 \u0627\u0644\u0633\u062d\u0627\u0628\u064a \u0644\u0644\u0645\u0631\u0641\u0642\u0627\u062a</h3>
-                    </div>
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
-                        <div class="form-group" style="margin:0;">
-                            <label>\u0627\u0644\u0645\u0632\u0648\u062f \u0627\u0644\u0627\u0641\u062a\u0631\u0627\u0636\u064a</label>
-                            <select id="cloud-provider" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
-                                <option value="google_drive">Google Drive</option>
-                                <option value="onedrive">OneDrive</option>
+                        <div class="form-group">
+                            <label>الثيم (Theme)</label>
+                            <select id="theme-select" class="form-control" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);">
+                                <option value="light" ${!isDark ? 'selected' : ''}>الوضع النهاري (Light)</option>
+                                <option value="dark" ${isDark ? 'selected' : ''}>الوضع الليلي (Dark)</option>
                             </select>
                         </div>
-                        <div class="form-group" style="margin:0;"><label>Google Client ID</label><input type="text" id="cloud-google-client-id" class="form-control" placeholder="OAuth Client ID" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
-                        <div class="form-group" style="margin:0;"><label>Google API Key</label><input type="text" id="cloud-google-api-key" class="form-control" placeholder="Browser API Key" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
-                        <div class="form-group" style="margin:0;"><label>Google App ID</label><input type="text" id="cloud-google-app-id" class="form-control" placeholder="Cloud Project App ID" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
-                        <div class="form-group" style="margin:0;"><label>Google Folder ID</label><input type="text" id="cloud-google-folder-id" class="form-control" placeholder="Shared folder id" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
-                        <div class="form-group" style="margin:0;"><label>OneDrive Client ID</label><input type="text" id="cloud-onedrive-client-id" class="form-control" placeholder="Azure App Client ID" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
-                        <div class="form-group" style="margin:0;"><label>Tenant ID</label><input type="text" id="cloud-onedrive-tenant-id" class="form-control" placeholder="organizations / tenant id" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
-                        <div class="form-group" style="margin:0;"><label>OneDrive Folder Path</label><input type="text" id="cloud-onedrive-folder-path" class="form-control" placeholder="/Appeals/2026" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
                     </div>
-                    <label style="display:flex; align-items:center; gap:10px; margin-top:18px; font-weight:700; color:var(--text-primary);">
-                        <input type="checkbox" id="cloud-links-only">
-                        \u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u0627\u0644\u0631\u0648\u0627\u0628\u0637 \u0627\u0644\u0633\u062d\u0627\u0628\u064a\u0629 \u0641\u0642\u0637 \u062d\u062a\u0649 \u064a\u062a\u0645 \u0627\u0633\u062a\u0643\u0645\u0627\u0644 OAuth \u0648\u0627\u0644\u0631\u0641\u0639 \u0627\u0644\u0645\u0628\u0627\u0634\u0631
-                    </label>
-                    <div class="alert alert-info" style="background:#e8f3ff; color:#234e70; padding:14px; border-radius:10px; margin-top:16px; font-size:0.92rem;">
-                        \u0627\u0644\u0631\u0628\u0637 \u0627\u0644\u0645\u0628\u0627\u0634\u0631 \u0645\u0639 Google Drive \u0648 OneDrive \u064a\u062d\u062a\u0627\u062c \u0628\u064a\u0627\u0646\u0627\u062a OAuth \u0627\u0644\u062e\u0627\u0635\u0629 \u0628\u0643. \u0628\u0639\u062f \u0625\u0636\u0627\u0641\u062a\u0647\u0627 \u0647\u0646\u0627\u060c \u0633\u064a\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062a\u0637\u0628\u064a\u0642 \u0646\u0641\u0633 \u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0641\u064a \u0634\u0627\u0634\u0629 \u0627\u0644\u0645\u0631\u0641\u0642\u0627\u062a.
-                    </div>
-                    <div style="display:flex; justify-content:flex-end; margin-top:18px;">
-                        <button id="save-cloud-settings-btn" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> \u062d\u0641\u0638 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u062a\u062e\u0632\u064a\u0646</button>
+
+                    <div class="grid-col-8 section-card">
+                        <div class="section-header" style="margin-bottom:20px; padding-bottom:15px;">
+                            <h3><i class="fas fa-bars" style="color:var(--accent-color);"></i> &nbsp;تخصيص التبويبات الرئيسية</h3>
+                        </div>
+                        <div id="tabs-customization-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:12px;"></div>
+                        <div style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px; display:flex; gap:20px; align-items:flex-end; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:200px;">
+                                <label style="display:block; font-weight:700; margin-bottom:8px; font-size:0.9rem;">شاشة البدء الافتراضية</label>
+                                <select id="default-start-screen" class="form-control" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);">
+                                    <option value="dashboard">لوحة التحكم</option>
+                                    <option value="appeals">الدعاوى والطعون</option>
+                                    <option value="agenda">أجندة الجلسات</option>
+                                    <option value="reports">التقارير الذكية</option>
+                                    <option value="tasks">إدارة المهام</option>
+                                </select>
+                            </div>
+                            <button id="save-tabs-btn" class="btn btn-primary" style="padding:10px 20px;"><i class="fas fa-save"></i> حفظ التخصيصات</button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
+            <!-- TAB 3: Cloud Storage -->
+            <div id="stab-cloud" class="settings-tab-content" style="display:none;">
+                <div class="dashboard-grid">
+                    <div class="grid-col-12 section-card">
+                        <div class="section-header" style="margin-bottom:20px; padding-bottom:15px;">
+                            <h3><i class="fas fa-cloud" style="color:var(--accent-color);"></i> &nbsp;التخزين السحابي للمرفقات والأرشيف</h3>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+                            <div class="form-group" style="margin:0;">
+                                <label>المزود الافتراضي</label>
+                                <select id="cloud-provider" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
+                                    <option value="google_drive">Google Drive</option>
+                                    <option value="onedrive">OneDrive</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0;"><label>Google Client ID</label><input type="text" id="cloud-google-client-id" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
+                            <div class="form-group" style="margin:0;"><label>Google API Key</label><input type="text" id="cloud-google-api-key" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
+                            <div class="form-group" style="margin:0;"><label>Google App ID</label><input type="text" id="cloud-google-app-id" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
+                            <div class="form-group" style="margin:0;"><label>Google Folder ID</label><input type="text" id="cloud-google-folder-id" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
+                            <div class="form-group" style="margin:0;"><label>OneDrive Client ID</label><input type="text" id="cloud-onedrive-client-id" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
+                            <div class="form-group" style="margin:0;"><label>Tenant ID</label><input type="text" id="cloud-onedrive-tenant-id" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
+                            <div class="form-group" style="margin:0;"><label>OneDrive Folder Path</label><input type="text" id="cloud-onedrive-folder-path" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;"></div>
+                        </div>
+                        <label style="display:flex; align-items:center; gap:10px; margin-top:18px; font-weight:700; color:var(--text-primary);">
+                            <input type="checkbox" id="cloud-links-only"> استخدام الروابط السحابية فقط
+                        </label>
+                        <div style="display:flex; justify-content:flex-end; margin-top:18px;">
+                            <button id="save-cloud-settings-btn" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> حفظ إعدادات التخزين</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: Users -->
+            <div id="stab-users" class="settings-tab-content" style="display:none;">
+                <div class="section-card" style="text-align:center; padding:60px 30px;">
+                    <i class="fas fa-users-cog" style="font-size:5rem; opacity:0.2; margin-bottom:20px; display:block;"></i>
+                    <h3 style="margin-bottom:15px; font-size:1.5rem;">نظام إدارة المستخدمين والصلاحيات</h3>
+                    <p style="color:var(--text-secondary); max-width:540px; margin:0 auto 25px; line-height:1.8;">
+                        جميع المستخدمين يُدارون حالياً عبر <strong>Firebase Console</strong>.
+                        هذه الشاشة مخصصة لإدارة الصلاحيات من داخل التطبيق في التحديثات القادمة.
+                    </p>
+                    <span class="badge" style="background:var(--accent-color); color:white; padding:8px 20px; border-radius:20px;">
+                        <i class="fas fa-clock"></i> قيد التطوير
+                    </span>
+                </div>
             </div>
         `;
+
+        // Tab switching
+        container.querySelectorAll('.settings-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.currentTarget;
+                container.querySelectorAll('.settings-tab-btn').forEach(b => {
+                    b.style.background = 'transparent';
+                    b.style.color = 'var(--text-secondary)';
+                });
+                container.querySelectorAll('.settings-tab-content').forEach(t => t.style.display = 'none');
+                target.style.background = 'var(--accent-color)';
+                target.style.color = 'white';
+                const panel = document.getElementById(target.dataset.tab);
+                if (panel) panel.style.display = 'block';
+            });
+        });
     },
 
     renderTags: (containerId, items) => {
@@ -500,7 +535,6 @@ export const AdminModule = {
                 const listId = e.target.dataset.list;
                 const idx = parseInt(e.target.dataset.index);
                 const listKey = listId === 'courts-list' ? 'courts' : 'subjects';
-                
                 AdminModule.lookups[listKey].splice(idx, 1);
                 await AdminModule.saveLookups();
                 AdminModule.renderTags(listId, AdminModule.lookups[listKey]);
@@ -552,7 +586,6 @@ export const AdminModule = {
             const input = document.getElementById(inputId);
             const val = input.value.trim();
             if(!val) return;
-            
             if(!AdminModule.lookups[listKey]) AdminModule.lookups[listKey] = [];
             if(!AdminModule.lookups[listKey].includes(val)) {
                 AdminModule.lookups[listKey].push(val);

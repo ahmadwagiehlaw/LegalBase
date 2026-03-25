@@ -53,6 +53,8 @@ export const ImportModule = {
             color: '#4a044e',
             fields: [
                 { id: 'roll',             label: 'الرول / رقم الرول' },
+                { id: 'fileLocation',     label: 'مكان الملف / مكان الحفظ' },
+                { id: 'litigationStage',  label: 'مرحلة التقاضي / الدرجة' },
                 { id: 'plaintiffAddress', label: 'عنوان المدعي / الطاعن' },
                 { id: 'judgeChosen',      label: 'المقرر المختار / القاضي' },
                 { id: 'notes',            label: 'ملاحظات / تعليق' },
@@ -86,6 +88,8 @@ export const ImportModule = {
         'judgmentSummary': ['نص الحكم', 'منطوق الحكم', 'الحكم'],
         'resultCategory':  ['النتيجة', 'نتيجة الحكم', 'result'],
         'roll':            ['الرول', 'رول', 'رقم الرول', 'الروول'],
+        'fileLocation':    ['مكان الملف', 'مكان', 'الحفظ', 'مكان الحفظ', 'موقع الملف'],
+        'litigationStage': ['مرحلة التقاضي', 'مرحلة', 'الدرجة', 'درجة التقاضي'],
         'plaintiffAddress':['عنوان المدعي', 'عنوان الطاعن', 'عنوان المدعى عليه', 'العنوان'],
         'judgeChosen':     ['المقرر', 'المقرر المختار', 'القاضي', 'judge'],
         'notes':           ['ملاحظات', 'ملاحظة', 'notes', 'تعليق'],

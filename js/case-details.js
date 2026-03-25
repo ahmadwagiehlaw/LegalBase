@@ -57,7 +57,18 @@ export const CaseDetailsModule = {
                 <div style="flex:1; z-index:1;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
-                            <span class="badge ${appeal.status === 'متداول' ? 'badge-success' : 'badge-warning'}" style="margin-bottom:10px; display:inline-block; font-size:0.9rem;">${appeal.status || 'متداول'}</span>
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+                                <span class="badge ${appeal.status === 'متداول' ? 'badge-success' : 'badge-warning'}" style="font-size:0.9rem; padding:6px 12px;">${appeal.status || 'متداول'}</span>
+                                <div style="display:flex; align-items:center; background:rgba(255,255,255,0.15); border-radius:8px; padding:4px 10px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 2px 4px rgba(0,0,0,0.1);" title="مكان واسم حائز الملف">
+                                    <i class="fas fa-map-marker-alt" style="color:#f59e0b; margin-left:8px;"></i>
+                                    <span style="font-size:0.85rem; color:rgba(255,255,255,0.7); margin-left:6px;">مكان الملف:</span>
+                                    <select class="file-loc-select" data-id="${appeal.id}" onchange="if(window.AppealsModule) window.AppealsModule.updateFileLocation('${appeal.id}', this.value)" style="background:transparent; border:none; color:white; font-weight:bold; font-size:0.95rem; outline:none; cursor:pointer;">
+                                        ${(window.AppealsModule ? window.AppealsModule.getFileLocations() : []).map(opt => `<option value="${opt}" style="color:black;" ${appeal.fileLocation === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                                        <option value="" style="color:black;" ${!appeal.fileLocation ? 'selected' : ''}>- غير محدد -</option>
+                                        <option value="_edit_" style="color:red; font-weight:bold;">تعديل القائمة...</option>
+                                    </select>
+                                </div>
+                            </div>
                             <h2 style="font-size:2rem; font-weight:800; color:white; margin:0; line-height:1.2;">ملف الطعن: ${appeal.appealNumber || '---'} لسنة ${appeal.year || '---'}</h2>
                             <p style="font-size:1.1rem; color:var(--accent-color); margin-top:8px;">${appeal.court || '---'}</p>
                         </div>
@@ -325,6 +336,88 @@ export const CaseDetailsModule = {
                 isUploading = false;
                 document.getElementById('cd-note-upload-status').classList.add('hidden');
                 document.getElementById('cd-trigger-note-upload-btn').disabled = false;
+            }
+        });
+
+        // Tabs Logic
+        document.querySelectorAll('.cd-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.cd-tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.cd-tab-content').forEach(c => c.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                document.getElementById(e.currentTarget.dataset.target).classList.add('active');
+            });
+        });
+
+        // Procedures UI Bindings
+        document.getElementById('cd-add-procedure-btn')?.addEventListener('click', () => {
+            document.getElementById('cd-add-procedure-form').classList.toggle('hidden');
+            document.getElementById('cd-proc-date').value = new Date().toISOString().split('T')[0];
+        });
+        document.getElementById('cd-cancel-proc-btn')?.addEventListener('click', () => {
+            document.getElementById('cd-add-procedure-form').classList.add('hidden');
+        });
+        document.getElementById('cd-save-proc-btn')?.addEventListener('click', () => {
+            const type = document.getElementById('cd-proc-type').value;
+            const date = document.getElementById('cd-proc-date').value;
+            const notes = document.getElementById('cd-proc-notes').value.trim();
+            if(!date) return UI.showToast("يرجى تحديد تاريخ الإجراء", "warning");
+            CaseDetailsModule.addProcedure(type, date, notes);
+        });
+
+        // Attachments UI Logic
+        document.getElementById('cd-add-attach-btn')?.addEventListener('click', () => {
+            document.getElementById('cd-add-attach-form').classList.toggle('hidden');
+        });
+        document.getElementById('cd-cancel-attach-btn')?.addEventListener('click', () => {
+            document.getElementById('cd-add-attach-form').classList.add('hidden');
+            document.getElementById('cd-attach-file-upload').value = '';
+            document.getElementById('cd-attach-desc').value = '';
+        });
+        
+        let isAttachUploading = false;
+        document.getElementById('cd-save-attach-btn')?.addEventListener('click', async () => {
+            if (isAttachUploading) return;
+            const fileInput = document.getElementById('cd-attach-file-upload');
+            if(!fileInput.files.length) { return UI.showToast("يرجى اختيار ملف المرفق للرفع", "warning"); }
+            const file = fileInput.files[0];
+            const type = document.getElementById('cd-attach-type').value;
+            const desc = document.getElementById('cd-attach-desc').value.trim();
+            const finalDesc = (type === 'أخرى' && desc) ? desc : (desc ? `${type} - ${desc}` : type);
+
+            isAttachUploading = true;
+            document.getElementById('cd-attach-upload-status').classList.remove('hidden');
+            document.getElementById('cd-save-attach-btn').disabled = true;
+
+            try {
+                const { GoogleDriveModule } = await import('./google-drive.js');
+                const url = await GoogleDriveModule.uploadFileInteractive(file);
+                
+                if (url) {
+                    await addDoc(collection(db, "attachments"), {
+                        appealId: appeal.id,
+                        appealNumber: appeal.appealNumber || '',
+                        fileName: file.name,
+                        fileType: file.type || 'application/octet-stream',
+                        fileSize: file.size,
+                        storagePath: url, 
+                        downloadURL: url,
+                        description: finalDesc,
+                        cloudProvider: 'google_drive',
+                        createdAt: serverTimestamp()
+                    });
+                    UI.showToast("تم رفع المرفق وإضافته لملف الدعوى", "success");
+                    document.getElementById('cd-add-attach-form').classList.add('hidden');
+                    document.getElementById('cd-attach-file-upload').value = '';
+                    CaseDetailsModule.loadAttachments(appeal.id);
+                }
+            } catch(e) {
+                console.error("Attachment upload err", e);
+                UI.showToast("فشل الرفع لجوجل درايف", "error");
+            } finally {
+                isAttachUploading = false;
+                document.getElementById('cd-attach-upload-status').classList.add('hidden');
+                document.getElementById('cd-save-attach-btn').disabled = false;
             }
         });
     },

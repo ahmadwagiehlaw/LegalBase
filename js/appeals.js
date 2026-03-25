@@ -27,6 +27,54 @@ export const AppealsModule = {
         AppealsModule.bindEvents();
     },
 
+    getFileLocations: () => {
+        const defaultList = ['في المكتب', 'صورة الملف', 'لا شأن', 'غير موجود', 'شعبة الشغل', 'مع الموظف', 'خارج الاختصاص', 'وارد مكتب فني', 'ملف مؤقت'];
+        try {
+            const custom = JSON.parse(localStorage.getItem('CUSTOM_FILE_LOCATIONS'));
+            return custom || defaultList;
+        } catch(e) { return defaultList; }
+    },
+
+    editFileLocationsList: () => {
+        const current = AppealsModule.getFileLocations();
+        const str = prompt('قم بتعديل قائمة أماكن الملفات وافصل بينها بشرطة (-) أو فاصلة (،):\\nمثال: المكتب-المحكمة-الخبير', current.join(' - '));
+        if (str !== null) {
+            let splitted = str.split('-');
+            if(splitted.length === 1 && str.includes('،')) splitted = str.split('،');
+            if(splitted.length === 1 && str.includes(','))  splitted = str.split(',');
+            const newList = splitted.map(s => s.trim()).filter(Boolean);
+            if(newList.length > 0) {
+                localStorage.setItem('CUSTOM_FILE_LOCATIONS', JSON.stringify(newList));
+                UI.showToast("تم تحديث القائمة بنجاح! سيظهر التحديث تلقائياً.", "success");
+                
+                // Refresh views seamlessly
+                const route = location.hash.replace('#','') || 'dashboard';
+                if(route === 'case-details' && window.CaseDetailsModule && window.CaseDetailsModule.currentAppealId) {
+                    window.CaseDetailsModule.loadCase(window.CaseDetailsModule.currentAppealId);
+                } else {
+                    AppealsModule.renderTable(AppealsModule.filteredAppeals);
+                }
+            }
+        }
+    },
+
+    updateFileLocation: async (id, val) => {
+        if(val === '_edit_') {
+            AppealsModule.editFileLocationsList();
+            return;
+        }
+        try {
+            await updateDoc(doc(db, "appeals", id), { fileLocation: val });
+            AppealsStore.upsert({ id, fileLocation: val });
+            UI.showToast("تم تحديث مكان الملف بنجاح", "success");
+            // Automatically update inline DOM occurrences without full reload
+            document.querySelectorAll(`.file-loc-select[data-id="${id}"]`).forEach(el => el.value = val);
+        } catch(e) {
+            console.error(e);
+            UI.showToast("فشل تحديث مكان الملف", "error");
+        }
+    },
+
     filterAppeals: () => {
         const searchTerm = document.getElementById('search-appeal')?.value?.trim().toLowerCase() || '';
         const statusFilter = document.getElementById('filter-appeal-status')?.value || '';
@@ -143,6 +191,7 @@ export const AppealsModule = {
                             <th>الطاعن</th>
                             <th>المطعون ضده</th>
                             <th>الحالة</th>
+                            <th>مكان الملف</th>
                             <th>الإجراءات</th>
                         </tr>
                     </thead>
@@ -263,6 +312,13 @@ export const AppealsModule = {
                 <td style="padding:15px;">${appeal.plaintiff || '---'}</td>
                 <td style="padding:15px;">${appeal.defendant || '---'}</td>
                 <td style="padding:15px;"><span class="badge ${appeal.status === 'محجوز للحكم' ? 'محجوز' : (appeal.status === 'منتهي' ? 'منتهي' : 'متداول')}">${appeal.status}</span></td>
+                <td style="padding:15px;">
+                    <select class="file-loc-select" data-id="${appeal.id}" onchange="if(window.AppealsModule) window.AppealsModule.updateFileLocation('${appeal.id}', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-color); font-weight:bold; font-size:0.85rem; width:100%; min-width:110px; cursor:pointer; outline:none;">
+                        ${(window.AppealsModule ? window.AppealsModule.getFileLocations() : []).map(opt => `<option value="${opt}" ${appeal.fileLocation === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                        <option value="" ${!appeal.fileLocation ? 'selected' : ''}>- غير محدد -</option>
+                        <option value="_edit_" style="color:red; font-weight:bold;">تعديل القائمة...</option>
+                    </select>
+                </td>
                 <td style="padding:15px; display:flex; gap:10px; justify-content:flex-end;">
                     <a class="action-icon view-appeal" onclick="if(window.AppealsModule) window.AppealsModule.viewAppeal('${appeal.id}'); return false;" title="عرض ملف القضية"><i class="fas fa-folder-open" style="color:var(--accent-color);"></i></a>
                     <a class="action-icon edit-appeal" data-id="${appeal.id}" title="تعديل"><i class="fas fa-edit" style="color:var(--secondary-color);"></i></a>
