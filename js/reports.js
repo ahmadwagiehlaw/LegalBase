@@ -192,7 +192,7 @@ export const ReportsModule = {
             const badgeClass = colorMap[j.resultCategory] || 'badge-info';
             return `
                 <tr>
-                    <td style="font-weight:700; color:var(--accent-color);">${appeal?.appealNumber || j.appealId || '---'}</td>
+                    <td style="font-weight:700; color:var(--accent-color);"><a href="#" class="case-link" onclick="if(window.AppealsModule) window.AppealsModule.viewAppeal('${j.appealId}'); return false;" style="color:var(--accent-color); text-decoration:none;">${appeal?.appealNumber || j.appealId || '---'}</a></td>
                     <td style="direction:ltr; text-align:right;">${j.judgmentDate || '---'}</td>
                     <td>${appeal?.court || j.court || '---'}</td>
                     <td><span class="badge ${badgeClass}">${j.resultCategory || '---'}</span></td>

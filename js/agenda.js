@@ -683,7 +683,7 @@ export const AgendaModule = {
                             '<tr style="cursor:pointer;" class="agenda-row' + (AgendaModule.selectedAppealId === a.id ? ' agenda-row-active' : '') + '" data-id="' + a.id + '">' +
                                 '<td style="text-align:center;"><input type="checkbox" class="agenda-row-select" data-id="' + a.id + '" ' + (AgendaModule.selectedIds.has(a.id) ? 'checked' : '') + '></td>' +
                                 '<td style="font-weight:900;color:var(--nav-bg);background:rgba(245,158,11,0.08);border-radius:10px;text-align:center;white-space:nowrap;">' + (a.roll || '---') + '</td>' +
-                                '<td style="font-weight:800;color:var(--accent-color);white-space:nowrap;">' + (a.appealNumber || '---') + '</td>' +
+                                '<td style="font-weight:800;color:var(--accent-color);white-space:nowrap;"><a href="#" class="case-link" onclick="if(window.AppealsModule) window.AppealsModule.viewAppeal(\'' + a.id + '\'); return false;" style="color:var(--accent-color); text-decoration:none;">' + (a.appealNumber || '---') + '</a></td>' +
                                 '<td style="white-space:nowrap;">' + (a.year || '---') + '</td>' +
                                 '<td style="white-space:normal;line-height:1.45;">' + (a.plaintiff || '---') + '</td>' +
                                 '<td style="white-space:normal;line-height:1.45;">' + (a.defendant || '---') + '</td>' +
