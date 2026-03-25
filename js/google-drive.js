@@ -4,7 +4,28 @@ const GIS_SRC = 'https://accounts.google.com/gsi/client';
 const state = {
     scriptPromise: null,
     tokenClient: null,
-    accessToken: null
+    accessToken: null,
+    tokenExpiresAt: 0
+};
+
+const TOKEN_CACHE_KEY = 'sla_google_drive_token';
+const loadCachedToken = () => {
+    try {
+        const cached = JSON.parse(sessionStorage.getItem(TOKEN_CACHE_KEY) || 'null');
+        if (!cached?.token || !cached?.expiresAt) return null;
+        if (Date.now() >= cached.expiresAt) return null;
+        state.accessToken = cached.token;
+        state.tokenExpiresAt = cached.expiresAt;
+        return cached.token;
+    } catch {
+        return null;
+    }
+};
+const saveCachedToken = (token, expiresIn = 3300) => {
+    const expiresAt = Date.now() + (Number(expiresIn) || 3300) * 1000;
+    state.accessToken = token;
+    state.tokenExpiresAt = expiresAt;
+    sessionStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify({ token, expiresAt }));
 };
 
 export const GoogleDriveModule = {
@@ -39,6 +60,9 @@ export const GoogleDriveModule = {
             throw new Error('Missing Google Client ID');
         }
 
+        const cached = loadCachedToken();
+        if (cached) return cached;
+
         await GoogleDriveModule.loadScript();
 
         return new Promise((resolve, reject) => {
@@ -51,7 +75,7 @@ export const GoogleDriveModule = {
                             reject(new Error(response.error));
                             return;
                         }
-                        state.accessToken = response.access_token;
+                        saveCachedToken(response.access_token, response.expires_in);
                         resolve(state.accessToken);
                     }
                 });
@@ -61,7 +85,7 @@ export const GoogleDriveModule = {
                         reject(new Error(response.error));
                         return;
                     }
-                    state.accessToken = response.access_token;
+                    saveCachedToken(response.access_token, response.expires_in);
                     resolve(state.accessToken);
                 };
             }
@@ -83,6 +107,8 @@ export const GoogleDriveModule = {
             }
         }
         state.accessToken = null;
+        state.tokenExpiresAt = 0;
+        sessionStorage.removeItem(TOKEN_CACHE_KEY);
     },
 
     uploadFile: async (file, settings, metadata = {}) => {

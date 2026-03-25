@@ -22,6 +22,7 @@ export const AgendaModule = {
         agendaDaily: '\u0627\u0644\u0623\u062c\u0646\u062f\u0629 \u0627\u0644\u064a\u0648\u0645\u064a\u0629',
         appealDetails: '\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0637\u0639\u0646',
         bulkRollover: '\u062a\u0631\u062d\u064a\u0644 \u062c\u0645\u0627\u0639\u064a',
+        manualLog: '\u0627\u0644\u0633\u062c\u0644 \u0627\u0644\u064a\u062f\u0648\u064a',
         latest: '\u0627\u0644\u0623\u062d\u062f\u062b',
         lastSession: '\u0622\u062e\u0631 \u062c\u0644\u0633\u0629',
         currentMonth: '\u062c\u0644\u0633\u0627\u062a \u0627\u0644\u0634\u0647\u0631',
@@ -186,6 +187,7 @@ export const AgendaModule = {
         setHtml('view-agenda-btn', `<i class="fas fa-list-alt"></i> ${AgendaModule.labels.agendaDaily}`);
         setHtml('view-detail-btn', `<i class="fas fa-search-plus"></i> ${AgendaModule.labels.appealDetails}`);
         setHtml('bulk-rollover-btn', `<i class="fas fa-layer-group"></i> ${AgendaModule.labels.bulkRollover}`);
+        setHtml('manual-sessions-btn', `<i class="fas fa-calendar-check"></i> ${AgendaModule.labels.manualLog}`);
 
         const activeTabLabel = document.getElementById('agenda-active-tab-label');
         if (activeTabLabel) activeTabLabel.textContent = AgendaModule.labels.latest;
@@ -308,6 +310,9 @@ export const AgendaModule = {
                         <i class="fas fa-search-plus"></i> تفاصيل الطعن
                     </button>
                 </div>
+                    <button id="manual-sessions-btn" class="btn" style="min-width:130px; background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">
+                        <i class="fas fa-calendar-check"></i> السجل اليدوي
+                    </button>
                     <button id="bulk-rollover-btn" class="btn" style="background:var(--nav-bg); color:white;">
                         <i class="fas fa-layer-group"></i> طھط±ط­ظٹظ„ ط¬ظ…ط§ط¹ظٹ
                     </button>
@@ -328,6 +333,9 @@ export const AgendaModule = {
                 <div class="section-header" style="align-items:flex-start; gap:15px; flex-wrap:wrap;">
                     <h3><i class="fas fa-calendar-alt"></i> أجندة الجلسات</h3>
                     <div id="agenda-active-tab-label" style="font-size:0.85rem; color:var(--text-muted); font-weight:700;">الجلسة القادمة</div>
+                </div>
+                <div style="margin-bottom:15px; padding:12px 14px; border-radius:10px; background:rgba(59,130,246,0.08); color:var(--text-muted); line-height:1.9;">
+                    هذه الشاشة هي مساحة العمل اليومية للجلسات والترحيل والمتابعة. أما <strong>السجل اليدوي</strong> فهو سجل ثانوي للأرشفة أو لإدخال جلسة منفصلة فقط.
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:15px;" id="agenda-tabs">
                     <button class="btn agenda-tab-btn btn-primary" data-tab="next">الجلسة القادمة</button>
@@ -1173,6 +1181,9 @@ export const AgendaModule = {
             AgendaModule.currentAgendaTab = 'next';
             AgendaModule.visibleRowsCount = 10;
             AgendaModule.renderAgendaView();
+        });
+        document.getElementById('manual-sessions-btn')?.addEventListener('click', () => {
+            window.App?.navigate?.('sessions-log');
         });
         document.getElementById('view-detail-btn')?.addEventListener('click', AgendaModule.openDetailFromSelection);
         document.getElementById('bulk-rollover-btn')?.addEventListener('click', AgendaModule.openBulkRolloverModal);

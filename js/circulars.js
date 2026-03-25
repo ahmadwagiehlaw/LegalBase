@@ -1,14 +1,18 @@
-import { db, storage } from './config.js';
+import { db } from './config.js';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 import { UI } from './ui.js';
-import { Utils } from './utils.js';
+import { CloudStorageModule } from './cloud-storage.js';
+import { GoogleDriveModule } from './google-drive.js';
+import { OneDriveModule } from './onedrive.js';
+import { storage } from './config.js';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
 export const CircularsModule = {
     circulars: [],
-    
+
     init: async () => {
         CircularsModule.renderBaseUI();
+        CircularsModule.syncUploadModeUI();
         await CircularsModule.loadCirculars();
         CircularsModule.bindEvents();
     },
@@ -16,12 +20,12 @@ export const CircularsModule = {
     renderBaseUI: () => {
         const container = document.getElementById('content-container');
         if (!container) return;
-        
+
         container.innerHTML = `
             <div class="actions-bar" style="display:flex; justify-content:space-between; margin-bottom: 20px;">
                 <button id="add-circular-btn" class="btn btn-primary" style="background:var(--secondary-color);"><i class="fas fa-file-upload"></i> رفع قرار/منشور جديد</button>
             </div>
-            
+
             <div class="section-card">
                 <div class="section-header">
                     <h3>أرشيف القرارات والمنشورات الخاصة بالعمل</h3>
@@ -49,8 +53,19 @@ export const CircularsModule = {
                             </select>
                         </div>
                         <div class="form-group">
+                            <label>مزوّد الرفع</label>
+                            <select id="circ-provider" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);">
+                                <option value="google_drive">Google Drive</option>
+                                <option value="onedrive">OneDrive</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="circ-file-group">
                             <label>الملف (PDF)</label>
-                            <input type="file" id="circ-file" accept=".pdf" required>
+                            <input type="file" id="circ-file" accept=".pdf,application/pdf" required>
+                        </div>
+                        <div class="form-group hidden" id="circ-cloud-link-group">
+                            <label>رابط الملف السحابي</label>
+                            <input type="url" id="circ-cloud-link" placeholder="https://drive.google.com/... أو https://onedrive.live.com/...">
                         </div>
                         <div id="upload-status" class="hidden" style="margin-top:10px; color:var(--accent-color); font-size:0.8rem;">جاري الرفع...</div>
                         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
@@ -63,21 +78,37 @@ export const CircularsModule = {
         `;
     },
 
+    syncUploadModeUI: () => {
+        const provider = document.getElementById('circ-provider')?.value || 'google_drive';
+        const fileGroup = document.getElementById('circ-file-group');
+        const cloudLinkGroup = document.getElementById('circ-cloud-link-group');
+        const fileInput = document.getElementById('circ-file');
+        const cloudLinkInput = document.getElementById('circ-cloud-link');
+        const canDirectGoogleUpload = provider === 'google_drive' && CloudStorageModule.isDirectUploadConfigured('google_drive');
+        const canDirectOneDriveUpload = provider === 'onedrive' && CloudStorageModule.isDirectUploadConfigured('onedrive');
+        const useCloudLink = (provider === 'google_drive' && !canDirectGoogleUpload) || (provider === 'onedrive' && !canDirectOneDriveUpload);
+
+        fileGroup?.classList.toggle('hidden', useCloudLink);
+        cloudLinkGroup?.classList.toggle('hidden', !useCloudLink);
+        if (fileInput) fileInput.required = !useCloudLink;
+        if (cloudLinkInput) cloudLinkInput.required = useCloudLink;
+    },
+
     loadCirculars: async () => {
         try {
             const q = query(collection(db, "circulars"), orderBy("createdAt", "desc"));
             const snapshot = await getDocs(q);
             CircularsModule.circulars = [];
-            snapshot.forEach(doc => CircularsModule.circulars.push({id: doc.id, ...doc.data()}));
+            snapshot.forEach(doc => CircularsModule.circulars.push({ id: doc.id, ...doc.data() }));
             CircularsModule.renderGrid();
         } catch (e) { console.error(e); }
     },
 
     renderGrid: () => {
         const grid = document.getElementById('circulars-grid');
-        if(!grid) return;
-        
-        if(CircularsModule.circulars.length === 0) {
+        if (!grid) return;
+
+        if (CircularsModule.circulars.length === 0) {
             grid.innerHTML = '<p>لا توجد منشورات مسجلة</p>';
             return;
         }
@@ -89,7 +120,7 @@ export const CircularsModule = {
                 <span class="badge badge-info">${c.category}</span>
                 <div style="display:flex; gap:10px; margin-top:10px; width:100%;">
                     <a href="${c.url}" target="_blank" class="btn btn-primary btn-block" style="padding:8px; font-size:0.8rem; flex:1;">فتح <i class="fas fa-external-link-alt"></i></a>
-                    <button class="btn btn-danger delete-circ" data-id="${c.id}" data-path="${c.path}" style="padding:8px; flex:0 0 40px;"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-danger delete-circ" data-id="${c.id}" data-path="${c.path}" data-provider="${c.cloudProvider || 'firebase'}" style="padding:8px; flex:0 0 40px;"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         `).join('');
@@ -99,13 +130,16 @@ export const CircularsModule = {
                 if(confirm('حذف هذا المنشور؟')) {
                     const id = e.currentTarget.dataset.id;
                     const path = e.currentTarget.dataset.path;
+                    const provider = e.currentTarget.dataset.provider || 'google_drive';
                     try {
-                        await deleteObject(ref(storage, path));
+                        if (provider === 'firebase' && path) {
+                            await deleteObject(ref(storage, path));
+                        }
                         await deleteDoc(doc(db, "circulars", id));
                         CircularsModule.loadCirculars();
                     } catch(err) {
                         console.error(err);
-                        await deleteDoc(doc(db, "circulars", id)); // try DB anyway
+                        await deleteDoc(doc(db, "circulars", id));
                         CircularsModule.loadCirculars();
                     }
                 }
@@ -116,43 +150,70 @@ export const CircularsModule = {
     bindEvents: () => {
         const modal = document.getElementById('circular-modal');
         const form = document.getElementById('circular-form');
-        
+        const providerSelect = document.getElementById('circ-provider');
+
         document.getElementById('add-circular-btn')?.addEventListener('click', () => {
             form.reset();
+            CircularsModule.syncUploadModeUI();
             modal.classList.remove('hidden');
         });
 
         document.getElementById('close-circ-modal-btn')?.addEventListener('click', () => modal.classList.add('hidden'));
+        providerSelect?.addEventListener('change', CircularsModule.syncUploadModeUI);
 
         form?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const file = document.getElementById('circ-file').files[0];
+            const cloudLink = document.getElementById('circ-cloud-link')?.value.trim() || '';
             const title = document.getElementById('circ-title').value;
             const cat = document.getElementById('circ-category').value;
-            
-            if(!file) return;
-            
+            const provider = document.getElementById('circ-provider')?.value || 'google_drive';
+            const canDirectGoogleUpload = provider === 'google_drive' && CloudStorageModule.isDirectUploadConfigured('google_drive');
+            const canDirectOneDriveUpload = provider === 'onedrive' && CloudStorageModule.isDirectUploadConfigured('onedrive');
+            const useCloudLink = (provider === 'google_drive' && !canDirectGoogleUpload) || (provider === 'onedrive' && !canDirectOneDriveUpload);
+
+            if (!useCloudLink && !file) return;
+            if (useCloudLink && !cloudLink) return UI.showToast('يرجى إدخال رابط الملف السحابي', 'error');
+
             const btn = form.querySelector('button[type="submit"]');
             btn.disabled = true;
             document.getElementById('upload-status').classList.remove('hidden');
 
             try {
-                const path = `circulars/${Date.now()}_${file.name}`;
-                const fileRef = ref(storage, path);
-                await uploadBytes(fileRef, file);
-                const url = await getDownloadURL(fileRef);
-                
-                await addDoc(collection(db, "circulars"), {
-                    title,
-                    category: cat,
-                    url,
-                    path,
-                    createdAt: serverTimestamp()
-                });
-                
+                if (useCloudLink) {
+                    await addDoc(collection(db, "circulars"), {
+                        title,
+                        category: cat,
+                        url: cloudLink,
+                        path: '',
+                        cloudProvider: provider,
+                        createdAt: serverTimestamp()
+                    });
+                } else if (provider === 'google_drive') {
+                    const uploaded = await GoogleDriveModule.uploadFile(file, CloudStorageModule.getResolvedSettings(), { fileName: file.name });
+                    await addDoc(collection(db, "circulars"), {
+                        title,
+                        category: cat,
+                        url: uploaded.webViewLink || uploaded.webContentLink,
+                        path: uploaded.fileId,
+                        cloudProvider: 'google_drive',
+                        createdAt: serverTimestamp()
+                    });
+                } else if (provider === 'onedrive') {
+                    const uploaded = await OneDriveModule.uploadFile(file, CloudStorageModule.getResolvedSettings(), { fileName: file.name });
+                    await addDoc(collection(db, "circulars"), {
+                        title,
+                        category: cat,
+                        url: uploaded.webUrl || uploaded.downloadUrl,
+                        path: uploaded.fileId,
+                        cloudProvider: 'onedrive',
+                        createdAt: serverTimestamp()
+                    });
+                }
+
                 modal.classList.add('hidden');
                 CircularsModule.loadCirculars();
-                UI.showToast("تم رفع المنشور بنجاح");
+                UI.showToast("تم رفع المنشور بنجاح", "success");
             } catch(err) {
                 console.error(err);
                 UI.showToast("خطأ في الرفع", "error");

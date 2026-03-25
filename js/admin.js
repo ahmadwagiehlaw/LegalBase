@@ -8,7 +8,7 @@ import { OneDriveModule } from './onedrive.js';
 export const AdminModule = {
     lookups: { courts: [], subjects: [] },
     identity: { appTitle: '', appSubTitle: '', consultantName: '', consultantRole: '' },
-    cloudStorage: { provider: 'firebase', useCloudLinksOnly: true },
+    cloudStorage: { provider: 'google_drive', useCloudLinksOnly: true },
 
     init: async () => {
         AdminModule.renderBaseUI();
@@ -50,7 +50,10 @@ export const AdminModule = {
     loadCloudStorage: async () => {
         try {
             AdminModule.cloudStorage = await CloudStorageModule.load();
-            document.getElementById('cloud-provider').value = AdminModule.cloudStorage.provider || 'firebase';
+            const providerValue = (AdminModule.cloudStorage.provider === 'onedrive' || AdminModule.cloudStorage.provider === 'google_drive')
+                ? AdminModule.cloudStorage.provider
+                : 'google_drive';
+            document.getElementById('cloud-provider').value = providerValue;
             document.getElementById('cloud-google-client-id').value = AdminModule.cloudStorage.googleClientId || '';
             document.getElementById('cloud-google-api-key').value = AdminModule.cloudStorage.googleApiKey || '';
             document.getElementById('cloud-google-app-id').value = AdminModule.cloudStorage.googleAppId || '';
@@ -73,7 +76,8 @@ export const AdminModule = {
             'cloud-google-api-key',
             'cloud-google-app-id',
             'cloud-onedrive-client-id',
-            'cloud-onedrive-tenant-id'
+            'cloud-onedrive-tenant-id',
+            'cloud-provider'
         ].forEach((id) => {
             document.getElementById(id)?.closest('.form-group')?.classList.add('hidden');
         });
@@ -83,6 +87,21 @@ export const AdminModule = {
 
         const oneDriveFolderLabel = document.querySelector('label[for="cloud-onedrive-folder-path"]') || document.getElementById('cloud-onedrive-folder-path')?.closest('.form-group')?.querySelector('label');
         if (oneDriveFolderLabel) oneDriveFolderLabel.textContent = 'مجلد OneDrive الافتراضي';
+
+        const googleFolderGroup = document.getElementById('cloud-google-folder-id')?.closest('.form-group');
+        if (googleFolderGroup) googleFolderGroup.classList.add('hidden');
+        const oneDriveFolderGroup = document.getElementById('cloud-onedrive-folder-path')?.closest('.form-group');
+        if (oneDriveFolderGroup) oneDriveFolderGroup.classList.add('hidden');
+        document.getElementById('cloud-links-only')?.closest('label')?.classList.add('hidden');
+
+        const providerSelect = document.getElementById('cloud-provider');
+        if (providerSelect) {
+            providerSelect.innerHTML = `
+                <option value="google_drive">Google Drive</option>
+                <option value="onedrive">OneDrive</option>
+            `;
+            providerSelect.value = providerSelect.value === 'onedrive' ? 'onedrive' : 'google_drive';
+        }
 
         const infoBox = section.querySelector('.alert.alert-info');
         if (infoBox) {
@@ -131,14 +150,6 @@ export const AdminModule = {
     applyStaticLabels: () => {
         const saveCloudBtn = document.getElementById('save-cloud-settings-btn');
         if (saveCloudBtn) saveCloudBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> حفظ تفضيلات التخزين';
-
-        const providerLabel = document.querySelector('label[for="cloud-provider"]') || document.getElementById('cloud-provider')?.closest('.form-group')?.querySelector('label');
-        if (providerLabel) providerLabel.textContent = 'المزود الافتراضي للمرفقات';
-
-        const linksOnlyLabel = document.getElementById('cloud-links-only')?.closest('label');
-        if (linksOnlyLabel) {
-            linksOnlyLabel.lastChild.textContent = ' استخدام الروابط السحابية فقط عند عدم توفر رفع مباشر';
-        }
     },
 
     refreshCloudConnectionStatus: () => {
@@ -248,7 +259,7 @@ export const AdminModule = {
 
     saveCloudStorage: async () => {
         const data = {
-            provider: document.getElementById('cloud-provider')?.value || 'firebase',
+            provider: document.getElementById('cloud-provider')?.value || 'google_drive',
             googleClientId: document.getElementById('cloud-google-client-id')?.value.trim() || '',
             googleApiKey: document.getElementById('cloud-google-api-key')?.value.trim() || '',
             googleAppId: document.getElementById('cloud-google-app-id')?.value.trim() || '',
@@ -354,7 +365,6 @@ export const AdminModule = {
                         <div class="form-group" style="margin:0;">
                             <label>\u0627\u0644\u0645\u0632\u0648\u062f \u0627\u0644\u0627\u0641\u062a\u0631\u0627\u0636\u064a</label>
                             <select id="cloud-provider" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); width:100%;">
-                                <option value="firebase">Firebase Storage</option>
                                 <option value="google_drive">Google Drive</option>
                                 <option value="onedrive">OneDrive</option>
                             </select>

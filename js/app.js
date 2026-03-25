@@ -54,6 +54,11 @@ const App = {
                 App.navigate(route);
             });
         });
+
+        const legacySessionsNav = document.querySelector('.nav-links a[data-route="sessions"]')?.closest('li');
+        if (legacySessionsNav) {
+            legacySessionsNav.style.display = 'none';
+        }
         
         // Init Auth
         AuthModule.init(
@@ -111,6 +116,12 @@ const App = {
         const title = document.getElementById('page-title');
         
         if (!container) return;
+        if (route === 'sessions') route = 'agenda';
+        if (route === 'sessions-log') {
+            if(title) title.textContent = 'السجل اليدوي للجلسات';
+            SessionsModule.init();
+            return;
+        }
 
         let content = '';
         switch(route) {

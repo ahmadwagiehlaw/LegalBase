@@ -2,7 +2,28 @@ const GRAPH_SCOPE = 'files.readwrite offline_access user.read';
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 
 const state = {
-    accessToken: null
+    accessToken: null,
+    tokenExpiresAt: 0
+};
+
+const TOKEN_CACHE_KEY = 'sla_onedrive_token';
+const loadCachedToken = () => {
+    try {
+        const cached = JSON.parse(sessionStorage.getItem(TOKEN_CACHE_KEY) || 'null');
+        if (!cached?.token || !cached?.expiresAt) return null;
+        if (Date.now() >= cached.expiresAt) return null;
+        state.accessToken = cached.token;
+        state.tokenExpiresAt = cached.expiresAt;
+        return cached.token;
+    } catch {
+        return null;
+    }
+};
+const saveCachedToken = (token, expiresIn = 3300) => {
+    const expiresAt = Date.now() + (Number(expiresIn) || 3300) * 1000;
+    state.accessToken = token;
+    state.tokenExpiresAt = expiresAt;
+    sessionStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify({ token, expiresAt }));
 };
 
 export const OneDriveModule = {
@@ -25,6 +46,9 @@ export const OneDriveModule = {
         if (!settings?.oneDriveClientId) {
             throw new Error('Missing OneDrive Client ID');
         }
+
+        const cached = loadCachedToken();
+        if (cached) return cached;
 
         if (state.accessToken) return state.accessToken;
 
@@ -57,10 +81,10 @@ export const OneDriveModule = {
                         return;
                     }
 
-                    state.accessToken = token;
+                    saveCachedToken(token, Number(params.get('expires_in')) || 3300);
                     window.clearInterval(timer);
                     popup.close();
-                    resolve(token);
+                    resolve(state.accessToken);
                 } catch (error) {
                     if (String(error).includes('cross-origin')) return;
                 }
@@ -72,6 +96,8 @@ export const OneDriveModule = {
 
     disconnect: () => {
         state.accessToken = null;
+        state.tokenExpiresAt = 0;
+        sessionStorage.removeItem(TOKEN_CACHE_KEY);
     },
 
     uploadFile: async (file, settings, metadata = {}) => {

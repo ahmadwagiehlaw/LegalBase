@@ -29,6 +29,20 @@ export const SessionsModule = {
                 </div>
             </div>
             
+            <div class="section-card" style="margin-bottom:20px; border-top:4px solid var(--accent-color); background:linear-gradient(135deg, rgba(59,130,246,0.08), rgba(15,23,42,0.02));">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap;">
+                    <div style="max-width:760px;">
+                        <h3 style="margin:0 0 8px 0; color:var(--text-primary);">سجل الجلسات اليدوي</h3>
+                        <p style="margin:0; color:var(--text-muted); line-height:1.9;">
+                            هذه الصفحة مخصصة لإدخال جلسات منفصلة أو أرشفتها يدويًا. أما التشغيل اليومي الحقيقي مثل الجلسة القادمة، آخر جلسة، الترحيل، الفلاتر العملية، والمتابعة السريعة للدعاوى فموجود في أجندة الجلسات.
+                        </p>
+                    </div>
+                    <button id="go-to-agenda-btn" class="btn btn-primary" style="white-space:nowrap;">
+                        <i class="fas fa-calendar-alt"></i> فتح أجندة الجلسات
+                    </button>
+                </div>
+            </div>
+
             <div class="section-card" style="overflow-x: auto;">
                 <table class="premium-table" style="width:100%;">
                     <thead>
@@ -174,6 +188,9 @@ export const SessionsModule = {
 
         if(addBtn) addBtn.addEventListener('click', () => SessionsModule.openModal());
         if(closeBtn) closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+        document.getElementById('go-to-agenda-btn')?.addEventListener('click', () => {
+            window.App?.navigate?.('agenda');
+        });
 
         if(form) {
             form.addEventListener('submit', async (e) => {

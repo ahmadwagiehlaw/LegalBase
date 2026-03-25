@@ -2,7 +2,7 @@ import { db, cloudOAuthConfig } from './config.js';
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const DEFAULT_SETTINGS = {
-    provider: 'firebase',
+    provider: 'google_drive',
     googleClientId: '',
     googleApiKey: '',
     googleAppId: '',

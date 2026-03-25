@@ -10,7 +10,7 @@ import { OneDriveModule } from './onedrive.js';
 
 export const AttachmentsModule = {
     attachments: [],
-    cloudSettings: { provider: 'firebase', useCloudLinksOnly: true },
+    cloudSettings: { provider: 'google_drive', useCloudLinksOnly: true },
     
     init: async () => {
         AttachmentsModule.cloudSettings = await CloudStorageModule.load();
@@ -32,7 +32,6 @@ export const AttachmentsModule = {
             <div class="form-group">
                 <label>مزود التخزين</label>
                 <select id="attach-provider" style="width:100%; padding:12px; border-radius:8px; background:var(--bg-color); color:var(--text-color); border:1px solid var(--border-color);">
-                    <option value="firebase">Firebase Storage</option>
                     <option value="google_drive">Google Drive</option>
                     <option value="onedrive">OneDrive</option>
                 </select>
@@ -358,7 +357,7 @@ export const AttachmentsModule = {
         if(addBtn) addBtn.addEventListener('click', () => {
             AttachmentsModule.populateAppealSelect();
             form.reset();
-            if (providerSelect) providerSelect.value = AttachmentsModule.cloudSettings.provider || 'firebase';
+            if (providerSelect) providerSelect.value = AttachmentsModule.cloudSettings.provider || 'google_drive';
             document.getElementById('upload-progress-container').classList.add('hidden');
             AttachmentsModule.syncUploadModeUI();
             modal.classList.remove('hidden');
@@ -373,7 +372,7 @@ export const AttachmentsModule = {
                 e.preventDefault();
                 const fileInput = document.getElementById('attach-file');
                 const file = fileInput.files[0];
-                const provider = document.getElementById('attach-provider')?.value || 'firebase';
+                const provider = document.getElementById('attach-provider')?.value || 'google_drive';
                 const cloudLink = document.getElementById('attach-cloud-link')?.value.trim() || '';
                 const canDirectGoogleUpload = provider === 'google_drive'
                     && !AttachmentsModule.cloudSettings.useCloudLinksOnly

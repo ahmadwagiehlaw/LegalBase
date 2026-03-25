@@ -65,7 +65,6 @@ export const RollsModule = {
                         <div class="form-group">
                             <label>مزوّد الرفع</label>
                             <select id="roll-provider" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);">
-                                <option value="firebase">Firebase Storage</option>
                                 <option value="google_drive">Google Drive</option>
                                 <option value="onedrive">OneDrive</option>
                             </select>
@@ -89,7 +88,7 @@ export const RollsModule = {
     },
 
     syncUploadModeUI: () => {
-        const provider = document.getElementById('roll-provider')?.value || 'firebase';
+        const provider = document.getElementById('roll-provider')?.value || 'google_drive';
         const fileGroup = document.getElementById('roll-file-group');
         const cloudLinkGroup = document.getElementById('roll-cloud-link-group');
         const fileInput = document.getElementById('roll-file');
@@ -167,7 +166,7 @@ export const RollsModule = {
                 court: document.getElementById('roll-court').value,
                 createdAt: serverTimestamp()
             };
-            const provider = document.getElementById('roll-provider')?.value || 'firebase';
+            const provider = document.getElementById('roll-provider')?.value || 'google_drive';
             const file = document.getElementById('roll-file')?.files?.[0];
             const cloudLink = document.getElementById('roll-cloud-link')?.value.trim() || '';
             const notes = document.getElementById('roll-link').value;
@@ -227,7 +226,7 @@ export const RollsModule = {
                     await addDoc(collection(db, "rolls"), {
                         ...rollData,
                         link: notes,
-                        cloudProvider: 'external'
+                        cloudProvider: provider
                     });
                 }
                 UI.showToast("تم إضافة الرول بنجاح", "success");
