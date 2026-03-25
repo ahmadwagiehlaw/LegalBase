@@ -14,6 +14,8 @@ export const AppealsModule = {
     unsubscribeStore: null,
     selectedIds: new Set(),
     filteredAppeals: [],
+    currentPage: 1,
+    pageSize: 10,
     
     init: async () => {
         if (AppealsModule.unsubscribeStore) AppealsModule.unsubscribeStore();
@@ -61,6 +63,7 @@ export const AppealsModule = {
     updateFileLocation: async (id, val) => {
         if(val === '_edit_') {
             AppealsModule.editFileLocationsList();
+            AppealsModule.renderPaginationControls();
             return;
         }
         try {
@@ -93,7 +96,13 @@ export const AppealsModule = {
             return matchesSearch && matchesStatus && matchesYear;
         });
 
+        AppealsModule.currentPage = 1;
         AppealsModule.renderTable(filtered);
+    },
+
+    getPagedAppeals: () => {
+        const start = (AppealsModule.currentPage - 1) * AppealsModule.pageSize;
+        return AppealsModule.filteredAppeals.slice(start, start + AppealsModule.pageSize);
     },
 
     updateBulkActionsState: () => {
@@ -109,12 +118,53 @@ export const AppealsModule = {
         if (deleteFilteredBtn) deleteFilteredBtn.disabled = filteredCount === 0;
 
         if (selectAllVisible) {
-            const visibleIds = AppealsModule.filteredAppeals.map((appeal) => appeal.id);
+            const visibleIds = AppealsModule.getPagedAppeals().map((appeal) => appeal.id);
             const hasVisible = visibleIds.length > 0;
             const allVisibleSelected = hasVisible && visibleIds.every((id) => AppealsModule.selectedIds.has(id));
             selectAllVisible.checked = allVisibleSelected;
             selectAllVisible.indeterminate = hasVisible && !allVisibleSelected && visibleIds.some((id) => AppealsModule.selectedIds.has(id));
         }
+    },
+
+    renderPaginationControls: () => {
+        const topEl = document.getElementById('appeals-pagination-top');
+        const bottomEl = document.getElementById('appeals-pagination-bottom');
+        const totalItems = AppealsModule.filteredAppeals.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / AppealsModule.pageSize));
+        const currentPage = Math.min(AppealsModule.currentPage, totalPages);
+        AppealsModule.currentPage = currentPage;
+
+        const start = totalItems === 0 ? 0 : ((currentPage - 1) * AppealsModule.pageSize) + 1;
+        const end = Math.min(currentPage * AppealsModule.pageSize, totalItems);
+        const html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                <div style="font-size:0.92rem; color:var(--text-secondary);">
+                    عرض <strong>${start}</strong> - <strong>${end}</strong> من <strong>${totalItems}</strong>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <button class="btn appeals-page-btn" data-page="first" ${currentPage <= 1 ? 'disabled' : ''} style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">الأولى</button>
+                    <button class="btn appeals-page-btn" data-page="prev" ${currentPage <= 1 ? 'disabled' : ''} style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">السابق</button>
+                    <span style="font-weight:700; color:var(--text-primary); min-width:110px; text-align:center;">صفحة ${currentPage} / ${totalPages}</span>
+                    <button class="btn appeals-page-btn" data-page="next" ${currentPage >= totalPages ? 'disabled' : ''} style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">التالي</button>
+                    <button class="btn appeals-page-btn" data-page="last" ${currentPage >= totalPages ? 'disabled' : ''} style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">الأخيرة</button>
+                </div>
+            </div>
+        `;
+
+        [topEl, bottomEl].forEach((el) => {
+            if (el) el.innerHTML = html;
+        });
+
+        document.querySelectorAll('.appeals-page-btn').forEach((button) => {
+            button.addEventListener('click', () => {
+                const action = button.dataset.page;
+                if (action === 'first') AppealsModule.currentPage = 1;
+                if (action === 'prev') AppealsModule.currentPage = Math.max(1, AppealsModule.currentPage - 1);
+                if (action === 'next') AppealsModule.currentPage = Math.min(totalPages, AppealsModule.currentPage + 1);
+                if (action === 'last') AppealsModule.currentPage = totalPages;
+                AppealsModule.renderTable(AppealsModule.filteredAppeals);
+            });
+        });
     },
 
     deleteAppealsByIds: async (appealIds, label = 'العناصر المحددة') => {
@@ -181,6 +231,8 @@ export const AppealsModule = {
                 </div>
             </div>
 
+            <div id="appeals-pagination-top" class="section-card" style="padding:14px 16px; margin-bottom:14px;"></div>
+
             <div class="section-card" style="overflow-x: auto;">
                 <table class="premium-table" style="width:100%;">
                     <thead>
@@ -200,6 +252,8 @@ export const AppealsModule = {
                     </tbody>
                 </table>
             </div>
+
+            <div id="appeals-pagination-bottom" class="section-card" style="padding:14px 16px; margin-top:14px;"></div>
 
             <!-- Add/Edit Modal (Hidden by default) -->
             <div id="appeal-modal" class="modal-backdrop hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:flex; justify-content:center; align-items:center;">
@@ -296,13 +350,17 @@ export const AppealsModule = {
         const tbody = document.getElementById('appeals-table-body');
         if (!tbody) return;
         AppealsModule.filteredAppeals = data;
+        const totalPages = Math.max(1, Math.ceil(data.length / AppealsModule.pageSize));
+        AppealsModule.currentPage = Math.min(Math.max(AppealsModule.currentPage, 1), totalPages);
         
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px;">لا يوجد طعون مسجلة</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = data.map(appeal => `
+        const pageRows = AppealsModule.getPagedAppeals();
+
+        tbody.innerHTML = pageRows.map(appeal => `
             <tr>
                 <td style="padding:15px; text-align:center;">
                     <input type="checkbox" class="appeal-select" data-id="${appeal.id}" ${AppealsModule.selectedIds.has(appeal.id) ? 'checked' : ''}>
@@ -369,6 +427,7 @@ export const AppealsModule = {
             });
         });
 
+        AppealsModule.renderPaginationControls();
         AppealsModule.updateBulkActionsState();
     },
 
@@ -472,7 +531,7 @@ export const AppealsModule = {
 
         if(selectAllVisible) {
             selectAllVisible.addEventListener('change', (e) => {
-                AppealsModule.filteredAppeals.forEach((appeal) => {
+                AppealsModule.getPagedAppeals().forEach((appeal) => {
                     if (e.currentTarget.checked) AppealsModule.selectedIds.add(appeal.id);
                     else AppealsModule.selectedIds.delete(appeal.id);
                 });
