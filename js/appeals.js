@@ -697,9 +697,12 @@ export const AppealsModule = {
     },
 
     viewAppeal: (id) => {
-        const appeal = AppealsModule.appeals.find(a => a.id === id);
+        // Query store directly since AppealsModule array might be empty if the module hasn't been init()'d yet.
+        const appealsData = AppealsStore.getAll();
+        const appeal = appealsData.find(a => a.id === id);
+        
         if (!appeal) {
-            UI.showToast('لم يتم العثور على بيانات الطعن', 'error');
+            UI.showToast('لم يتم العثور على بيانات الطعن في الذاكرة حالياً', 'error');
             return;
         }
 

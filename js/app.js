@@ -64,6 +64,68 @@ const App = {
         if (legacySessionsNav) {
             legacySessionsNav.style.display = 'none';
         }
+
+        // Global Search Logic
+        const globalSearchInput = document.getElementById('global-search-input');
+        const globalSearchResults = document.getElementById('global-search-results');
+        
+        if (globalSearchInput && globalSearchResults) {
+            globalSearchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim().toLowerCase();
+                if (!query) {
+                    globalSearchResults.classList.add('hidden');
+                    return;
+                }
+                
+                const appeals = AppealsStore.getAll();
+                const matched = appeals.filter(a => 
+                    (a.appealNumber && String(a.appealNumber).toLowerCase().includes(query)) ||
+                    (a.plaintiff && a.plaintiff.toLowerCase().includes(query)) ||
+                    (a.defendant && a.defendant.toLowerCase().includes(query)) ||
+                    (a.roll && String(a.roll).toLowerCase().includes(query)) ||
+                    (a.subject && a.subject.toLowerCase().includes(query))
+                ).slice(0, 8); // Limit to top 8
+
+                if (matched.length === 0) {
+                    globalSearchResults.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:0.9rem;">لا توجد نتائج مطابقة لـ "' + query + '"</div>';
+                } else {
+                    globalSearchResults.innerHTML = matched.map(m => `
+                        <div class="search-result-item" data-id="${m.id}" style="padding:12px; border-bottom:1px solid var(--border-color); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.2s;">
+                            <div>
+                                <strong style="color:var(--accent-color); font-size:1.05rem;">طعن رقم ${m.appealNumber || '---'} لسنة ${m.year || '---'}</strong>
+                                <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:4px; max-width:350px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    ${m.plaintiff || '---'} <strong style="color:var(--text-primary); margin:0 4px;">ضد</strong> ${m.defendant || '---'}
+                                </div>
+                            </div>
+                            <span class="badge badge-info" style="font-size:0.75rem;">${m.status || '---'}</span>
+                        </div>
+                    `).join('');
+                    
+                    globalSearchResults.querySelectorAll('.search-result-item').forEach(el => {
+                        el.addEventListener('click', () => {
+                            if (window.AppealsModule) {
+                                window.AppealsModule.viewAppeal(el.dataset.id);
+                            }
+                            globalSearchResults.classList.add('hidden');
+                            globalSearchInput.value = '';
+                        });
+                        
+                        // Add hover effect via JS since inline hover isn't possible and we don't want to create new CSS classes unnecessarily
+                        el.addEventListener('mouseover', () => el.style.background = 'rgba(245, 158, 11, 0.05)');
+                        el.addEventListener('mouseout', () => el.style.background = 'transparent');
+                    });
+                }
+                
+                globalSearchResults.classList.remove('hidden');
+            });
+            
+            // Hide on outside click
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#global-search-results') && !e.target.closest('#global-search-input')) {
+                    globalSearchResults.classList.add('hidden');
+                }
+            });
+        }
         
         // Init Auth
         AuthModule.init(

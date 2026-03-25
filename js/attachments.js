@@ -237,7 +237,7 @@ export const AttachmentsModule = {
             const providerMeta = AttachmentsModule.getProviderMeta(attachment);
             return `
                 <tr>
-                    <td style="font-weight:bold;">${attachment.appealNumber || ''}</td>
+                    <td style="font-weight:bold;"><a href="#" class="case-link" onclick="if(window.AppealsModule) window.AppealsModule.viewAppeal('${attachment.appealId}'); return false;" style="color:var(--accent-color); text-decoration:none;">${attachment.appealNumber || ''}</a></td>
                     <td>
                         <i class="${providerMeta.iconClass}" style="color:${providerMeta.iconColor}; font-size:1.1rem; margin-left:5px;"></i>
                         ${attachment.fileName || '---'}

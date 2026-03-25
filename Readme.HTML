@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>README - نظام إدارة الطعون والجلسات</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Cairo", Tahoma, Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2a44;
+            line-height: 1.9;
+        }
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            margin-bottom: 20px;
+        }
+        h1, h2, h3 { margin-top: 0; color: #0f172a; }
+        h1 { font-size: 2rem; margin-bottom: 10px; }
+        h2 { font-size: 1.3rem; margin-bottom: 12px; }
+        ul { margin: 0; padding-right: 20px; }
+        li { margin-bottom: 8px; }
+        .muted { color: #64748b; }
+        .pill {
+            display: inline-block;
+            background: #fff7ed;
+            color: #b45309;
+            border: 1px solid #fed7aa;
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 0.92rem;
+            margin-left: 8px;
+            margin-bottom: 8px;
+        }
+        code {
+            background: #eef2ff;
+            color: #3730a3;
+            padding: 2px 8px;
+            border-radius: 8px;
+        }
+        a { color: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>نظام إدارة الطعون والجلسات</h1>
+            <p class="muted">
+                هذه الصفحة تقدم وصفًا مختصرًا لوظائف التطبيق وطريقة استخدامه على مستوى التشغيل اليومي والإعدادات العامة.
+            </p>
+            <div>
+                <span class="pill">إدارة الدعاوى والطعون</span>
+                <span class="pill">أجندة الجلسات</span>
+                <span class="pill">ترحيل الجلسات</span>
+                <span class="pill">الأحكام والمرفقات</span>
+                <span class="pill">رفع سحابي</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>نظرة عامة</h2>
+            <p>
+                التطبيق مخصص لإدارة الدعاوى والطعون والجلسات والأحكام والمذكرات والمرفقات والتقارير داخل واجهة واحدة.
+                يركز النظام على تسهيل المتابعة اليومية، خاصة في ملفات القضايا التي تتكرر فيها الجلسات والقرارات والترحيل.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>أهم الوظائف</h2>
+            <ul>
+                <li>تسجيل الدعاوى والطعون وبيانات الخصوم والرول والسنة والموضوع والحالة.</li>
+                <li>عرض أجندة الجلسات مع فلاتر وترتيب وتحديد متعدد وترحيل فردي أو جماعي.</li>
+                <li>متابعة آخر جلسة والجلسة الحالية وسجل القرارات السابقة.</li>
+                <li>إدارة الأحكام والقرارات وربطها بملف الدعوى.</li>
+                <li>رفع المرفقات وملفات الرولات والمنشورات إلى Google Drive أو OneDrive وفق إعدادات النظام.</li>
+                <li>استيراد البيانات من ملفات Excel أو CSV مع مزامنة وتقليل التكرار.</li>
+                <li>عرض تقارير وإحصائيات تشغيلية عن الحالات والجلسات والأحكام.</li>
+                <li>إدارة القوائم المرجعية والهوية العامة للتطبيق وإعدادات التخزين السحابي.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>الفرق بين أجندة الجلسات والسجل اليدوي</h2>
+            <ul>
+                <li><strong>أجندة الجلسات:</strong> هي شاشة العمل اليومية الأساسية، وتشمل الفلاتر والترحيل والمتابعة السريعة وآخر جلسة.</li>
+                <li><strong>السجل اليدوي للجلسات:</strong> سجل فرعي يستخدم عند الحاجة لإضافة جلسة يدويًا أو أرشفة جلسات منفصلة.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>التخزين السحابي</h2>
+            <p>
+                يدعم النظام رفع الملفات إلى <strong>Google Drive</strong> و<strong>OneDrive</strong>. في الوضع المعتاد، يقوم كل مستخدم
+                بربط حسابه الرسمي ثم ترفع الملفات إلى مساحته السحابية الخاصة به، بينما يحتفظ النظام داخل قاعدة البيانات ببيانات الملف
+                والرابط المرتبط بالدعوى أو الجلسة أو الحكم.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>متطلبات التشغيل</h2>
+            <ul>
+                <li>متصفح حديث يدعم JavaScript.</li>
+                <li>اتصال صالح بخدمات Firebase المستخدمة في المشروع.</li>
+                <li>إعداد صالح للربط السحابي إذا كان رفع الملفات إلى Google Drive أو OneDrive مطلوبًا.</li>
+                <li>صلاحيات مناسبة للمستخدم داخل النظام وفق آلية الإدارة المعتمدة.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>ملاحظات مهمة</h2>
+            <ul>
+                <li>هذا المستند وصفي عام، ولا يغني عن سياسة الخصوصية أو الشروط.</li>
+                <li>أي استخدام للبيانات أو رفع للمرفقات يجب أن يراعي سياسات الجهة المالكة للنظام.</li>
+                <li>ينصح بمراجعة ملفات <a href="./PRIVACY.HTML">PRIVACY.HTML</a> و<a href="./terms.html">terms.html</a>.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

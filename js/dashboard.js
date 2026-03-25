@@ -54,6 +54,8 @@ export const DashboardModule = {
     formatDateForDisplay: (value) => {
         const normalized = DashboardModule.normalizeDateValue(value);
         if (!normalized) return '---';
+        if (normalized.includes('/')) return normalized; // Already formatted as DD/MM/YYYY
+        if (!normalized.includes('-')) return normalized;
         const [year, month, day] = normalized.split('-');
         return `${day}/${month}/${year}`;
     },
@@ -135,9 +137,9 @@ export const DashboardModule = {
                         <table class="premium-table" style="min-width:1250px;">
                             <thead>
                                 <tr>
+                                    <th>الرول</th>
                                     <th>رقم القضية</th>
                                     <th>السنة</th>
-                                    <th>الرول</th>
                                     <th>المدعي</th>
                                     <th>المدعي عليه</th>
                                     <th>الجلسة السابقة</th>
@@ -331,9 +333,9 @@ export const DashboardModule = {
             const statusClass = DashboardModule.getStatusBadgeClass(row.status);
 
             return '<tr>' +
-                    '<td style="font-weight:700;">' + (row.appealNumber || '---') + '</td>' +
-                    '<td>' + (row.year || '---') + '</td>' +
                     '<td>' + (row.roll || '---') + '</td>' +
+                    '<td style="font-weight:700;"><a href="#" class="case-link" onclick="if(window.AppealsModule) window.AppealsModule.viewAppeal(\'' + row.id + '\'); return false;" style="color:var(--accent-color); text-decoration:none;">' + (row.appealNumber || '---') + '</a></td>' +
+                    '<td>' + (row.year || '---') + '</td>' +
                     '<td>' + (row.plaintiff || '---') + '</td>' +
                     '<td>' + (row.defendant || '---') + '</td>' +
                     '<td style="direction:ltr; text-align:right;">' + DashboardModule.formatDateForDisplay(row.prevSessionDate) + '</td>' +

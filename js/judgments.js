@@ -113,7 +113,7 @@ export const JudgmentsModule = {
 
         tbody.innerHTML = data.map(j => `
             <tr>
-                <td style="font-weight:bold;">${j.appealNumber || ''}</td>
+                <td style="font-weight:bold;"><a href="#" class="case-link" onclick="if(window.AppealsModule) window.AppealsModule.viewAppeal('${j.appealId}'); return false;" style="color:var(--accent-color); text-decoration:none;">${j.appealNumber || ''}</a></td>
                 <td style="direction:ltr; text-align:right;">${j.judgmentDate}</td>
                 <td>${j.judgmentSummary?.substring(0, 50) || ''}...</td>
                 <td><span class="badge ${j.resultCategory === 'لصالحنا' ? 'badge-success' : (j.resultCategory === 'ضدنا' ? 'badge-danger' : 'badge-warning')}">${j.resultCategory}</span></td>

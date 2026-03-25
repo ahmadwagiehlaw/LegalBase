@@ -88,11 +88,12 @@
                         </div>
                     </div>
 
-                    <div class="header-center" style="flex:1; display:flex; justify-content:center;">
+                    <div class="header-center" style="flex:1; display:flex; justify-content:center; position:relative;">
                         <div class="header-search" style="width:100%; max-width:600px;">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="البحث عن القضايا، المواعيد، المهام...">
+                            <input type="text" id="global-search-input" placeholder="البحث برقم الطعن، الخصم، الموضوع..." autocomplete="off">
                         </div>
+                        <div id="global-search-results" class="hidden section-card" style="position:absolute; top:50px; left:0; right:0; margin:0 auto; width:100%; max-width:600px; padding:10px; z-index:3000; max-height:50vh; overflow-y:auto; border-top:3px solid var(--accent-color);"></div>
                     </div>
 
                     <div class="header-left" style="display:flex; align-items:center; gap:15px;">

@@ -138,7 +138,7 @@ export const SessionsModule = {
 
         tbody.innerHTML = data.map(s => `
             <tr>
-                <td style="font-weight:bold;">${s.appealNumber || 'غير محدد'}</td>
+                <td style="font-weight:bold;"><a href="#" class="case-link" onclick="if(window.AppealsModule) window.AppealsModule.viewAppeal('${s.appealId}'); return false;" style="color:var(--accent-color); text-decoration:none;">${s.appealNumber || 'غير محدد'}</a></td>
                 <td style="direction:ltr; text-align:right;">${s.sessionDate}</td>
                 <td><span class="badge ${s.sessionType === 'حكم' ? 'badge-danger' : 'badge-warning'}">${s.sessionType}</span></td>
                 <td>${s.agendaStatus || '---'}</td>

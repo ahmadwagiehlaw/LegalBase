@@ -129,7 +129,7 @@ export const RequestsModule = {
 
         tbody.innerHTML = data.map(r => `
             <tr>
-                <td style="font-weight:bold;">${r.appealNumber || '---'}</td>
+                <td style="font-weight:bold;"><a href="#" class="case-link" onclick="if(window.AppealsModule) window.AppealsModule.viewAppeal('${r.appealId}'); return false;" style="color:var(--accent-color); text-decoration:none;">${r.appealNumber || '---'}</a></td>
                 <td>${r.requesterName}</td>
                 <td><span class="badge badge-info">${r.requestType}</span></td>
                 <td><span class="badge ${r.requestStatus.includes('منجز') ? 'badge-success' : (r.requestStatus === 'مرفوض' ? 'badge-danger' : 'badge-warning')}">${r.requestStatus}</span></td>

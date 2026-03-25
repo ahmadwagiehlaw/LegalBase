@@ -1,22 +1,22 @@
 :root {
-    /* Premium Unified Dark Theme Palette */
-    --nav-bg: #0f172a;
-    --nav-hover: #1e293b;
-    --nav-text: #cbd5e1;
-    --nav-active: #f59e0b;
+    /* Premium Unified Dark Theme Palette - Deep & Luxurious */
+    --nav-bg: #0b1121;
+    --nav-hover: #162032;
+    --nav-text: #e2e8f0;
+    --nav-active: #d97706;
     
-    --accent-color: #f59e0b;
-    --accent-hover: #d97706;
+    --accent-color: #d97706;  /* Luxury gold/amber tone */
+    --accent-hover: #b45309;
     
-    --bg-color: #f0f4f8;
-    --panel-bg: rgba(255, 255, 255, 0.95);
-    --surface-bg: #f8fafc;
-    --hover-bg: #f1f5f9;
+    --bg-color: #f1f5f9;
+    --panel-bg: rgba(255, 255, 255, 0.98);
+    --surface-bg: #ffffff;
+    --hover-bg: #e2e8f0;
     --input-bg: #ffffff;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
     --text-muted: #94a3b8;
-    --border-color: #e2e8f0;
+    --border-color: #cbd5e1;
     
     --danger-color: #ef4444;
     --success-color: #10b981;
@@ -798,4 +798,58 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
+}
+
+/* ============================================
+   MOBILE READ-ONLY OPTIMIZATIONS & PREMIUM TWEAKS
+   ============================================ */
+@media (max-width: 768px) {
+    .mobile-hide {
+        display: none !important;
+    }
+    .premium-table th, .premium-table td {
+        padding: 10px 8px;
+        font-size: 0.85rem;
+    }
+    .premium-table {
+        min-width: unset !important; /* Allow collapse */
+    }
+    .btn {
+        padding: 8px 12px !important;
+        font-size: 0.85rem;
+    }
+    .actions-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .header-search {
+        max-width: 100%;
+        margin: 0 10px;
+    }
+    .header-search input {
+        font-size: 0.85rem;
+    }
+    /* Disable table actions completely on mobile */
+    td:last-child, th:last-child {
+        display: none !important;
+    }
+    
+    /* Hide specific action buttons and blocks */
+    .actions-bar,
+    .sidebar-cta,
+    .open-session-modal,
+    .open-session-meta,
+    .delete-appeal-btn,
+    .edit-appeal-btn,
+    .delete-circ,
+    .delete-note-btn,
+    .btn-new-case {
+        display: none !important;
+    }
+
+    /* Restructure the table rendering as stacked cards if needed or just smaller texts */
+    #global-search-results {
+        width: 95% !important;
+        max-height: 60vh !important;
+    }
 }
