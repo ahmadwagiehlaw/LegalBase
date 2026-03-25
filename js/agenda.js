@@ -306,11 +306,11 @@ export const AgendaModule = {
                     <button id="view-agenda-btn" class="btn btn-primary" style="min-width:130px;">
                         <i class="fas fa-list-alt"></i> الأجندة اليومية
                     </button>
-                    <button id="view-detail-btn" class="btn" style="min-width:130px; background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">
+                    <button id="view-detail-btn" class="btn btn-secondary" style="min-width:130px;">
                         <i class="fas fa-search-plus"></i> تفاصيل الطعن
                     </button>
                 </div>
-                    <button id="manual-sessions-btn" class="btn" style="min-width:130px; background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">
+                    <button id="manual-sessions-btn" class="btn btn-secondary" style="min-width:130px;">
                         <i class="fas fa-calendar-check"></i> السجل اليدوي
                     </button>
                     <button id="bulk-rollover-btn" class="btn" style="background:var(--nav-bg); color:white;">
@@ -318,16 +318,19 @@ export const AgendaModule = {
                     </button>
                 </div>
                 <div class="agenda-print-controls" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <input type="text" id="agenda-print-title-input" placeholder="عنوان الطباعة..." style="padding:8px 12px; border-radius:8px; border:1px solid var(--accent-color); background:rgba(245,158,11,0.05); color:var(--text-primary); width:180px;" onkeyup="document.getElementById('agenda-print-title').textContent = this.value || 'تقرير أجندة الجلسات'">
                     <input type="date" id="agenda-filter-date" style="padding:8px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);" title="تصفية حسب تاريخ الجلسة">
                     <input type="text" id="agenda-filter-text" placeholder="بحث برقم الطعن أو اسم الخصم..." style="padding:8px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); font-family:var(--font-primary); width:240px;">
-                    <button id="agenda-refresh-btn" class="btn" style="background:var(--nav-bg); color:white;">
+                    <button id="agenda-refresh-btn" class="btn btn-secondary">
                         <i class="fas fa-sync-alt"></i>
                     </button>
-                    <button id="print-agenda-btn" class="btn" style="background:var(--nav-bg); color:white;">
+                    <button id="print-agenda-btn" class="btn btn-primary" onclick="window.print()">
                         <i class="fas fa-print"></i>
                     </button>
                 </div>
             </div>
+
+            <h2 id="agenda-print-title" class="print-only">تقرير أجندة الجلسات</h2>
 
             <div class="section-card" style="padding:18px; margin-bottom:20px;">
                 <div class="section-header" style="align-items:flex-start; gap:15px; flex-wrap:wrap;">
@@ -339,12 +342,12 @@ export const AgendaModule = {
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:15px;" id="agenda-tabs">
                     <button class="btn agenda-tab-btn btn-primary" data-tab="next">الجلسة القادمة</button>
-                    <button class="btn agenda-tab-btn" data-tab="latest" style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">الأحدث</button>
-                    <button class="btn agenda-tab-btn" data-tab="last-session" style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">آخر جلسة</button>
-                    <button class="btn agenda-tab-btn" data-tab="current-month" style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">جلسات الشهر</button>
-                    <button class="btn agenda-tab-btn" data-tab="previous-month" style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">الشهر السابق</button>
+                    <button class="btn agenda-tab-btn btn-secondary" data-tab="latest">الأحدث</button>
+                    <button class="btn agenda-tab-btn btn-secondary" data-tab="last-session">آخر جلسة</button>
+                    <button class="btn agenda-tab-btn btn-secondary" data-tab="current-month">جلسات الشهر</button>
+                    <button class="btn agenda-tab-btn btn-secondary" data-tab="previous-month">الشهر السابق</button>
                 </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:15px;" class="print-hide">
                     <select id="agenda-sort-by" class="form-control" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary);">
                         <option value="sessionDate">ترتيب حسب الجلسة</option>
                         <option value="latestSession">ترتيب حسب أحدث جلسة</option>
@@ -364,7 +367,7 @@ export const AgendaModule = {
                         <option value="محجوز للحكم">محجوز للحكم</option>
                         <option value="منتهي">منتهي</option>
                     </select>
-                    <button id="agenda-clear-filters" class="btn" style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">
+                    <button id="agenda-clear-filters" class="btn btn-secondary">
                         <i class="fas fa-eraser"></i> مسح الفلاتر
                     </button>
                 </div>
@@ -407,15 +410,15 @@ export const AgendaModule = {
                         </div>
 
                         <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
-                            <button id="copy-previous-row-btn" class="btn" style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">
+                            <button id="copy-previous-row-btn" class="btn btn-secondary">
                                 <i class="fas fa-copy"></i> نسخ من الصف السابق
                             </button>
-                            <button id="session-meta-btn" class="btn" style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary);">
+                            <button id="session-meta-btn" class="btn btn-secondary">
                                 <i class="fas fa-sliders-h"></i> بيانات الجلسة
                             </button>
                         </div>
 
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;">
+                        <div class="form-grid" style="margin-bottom:20px;">
                             <div>
                                 <label style="display:block;font-weight:700;font-size:0.85rem;margin-bottom:6px;color:var(--text-muted);">ما تم في الجلسة / القرار</label>
                                 <input type="text" id="modal-decision" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-family:var(--font-primary);" placeholder="مثال: فحص - للحكم - إعلان - إحالة">
@@ -566,7 +569,7 @@ export const AgendaModule = {
                         <button id="close-bulk-rollover-modal" class="icon-btn"><i class="fas fa-times"></i></button>
                     </div>
                     <div id="bulk-rollover-count" style="margin-bottom:14px;color:var(--text-secondary);font-weight:700;"></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                    <div class="form-grid" style="margin-bottom:12px;">
                         <div>
                             <label style="display:block;font-weight:700;font-size:0.85rem;margin-bottom:6px;color:var(--text-muted);">التاريخ الجديد</label>
                             <input type="date" id="bulk-new-next-session" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);">
@@ -584,7 +587,7 @@ export const AgendaModule = {
                             </select>
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                    <div class="form-grid" style="margin-bottom:12px;">
                         <div>
                             <label style="display:block;font-weight:700;font-size:0.85rem;margin-bottom:6px;color:var(--text-muted);">القرار</label>
                             <input type="text" id="bulk-session-decision" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);">
@@ -641,16 +644,16 @@ export const AgendaModule = {
         }
 
         container.innerHTML =
-            '<div class="agenda-print-controls" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">' +
+            '<div class="agenda-print-controls print-hide" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">' +
                 '<label style="display:flex;align-items:center;gap:8px;font-weight:700;color:var(--text-secondary);">' +
                     '<input type="checkbox" id="select-visible-rows">' +
                     AgendaModule.labels.selectVisible +
                 '</label>' +
                 '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-                    '<button id="clear-selected-rows" class="btn" style="background:var(--bg-color);border:1px solid var(--border-color);color:var(--text-primary);">' +
+                    '<button id="clear-selected-rows" class="btn btn-secondary">' +
                         '<i class="fas fa-xmark"></i> ' + AgendaModule.labels.clearSelection +
                     '</button>' +
-                    '<button id="show-more-rows" class="btn" style="background:var(--bg-color);border:1px solid var(--border-color);color:var(--text-primary);' + (AgendaModule.currentRows.length >= rowsModern.length ? 'display:none;' : '') + '">' +
+                    '<button id="show-more-rows" class="btn btn-secondary" style="' + (AgendaModule.currentRows.length >= rowsModern.length ? 'display:none;' : '') + '">' +
                         '<i class="fas fa-chevron-down"></i> ' + AgendaModule.labels.showMore +
                     '</button>' +
                 '</div>' +

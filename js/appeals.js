@@ -1,5 +1,5 @@
 import { db } from './config.js';
-import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, addDoc, updateDoc, doc, getDoc, deleteDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { ImportModule } from './import.js';
 import { UI } from './ui.js';
 import { Utils } from './utils.js';
@@ -155,7 +155,7 @@ export const AppealsModule = {
                     <h3 id="modal-title" style="margin-bottom: 20px; color: var(--primary-color);">إضافة طعن جديد</h3>
                     <form id="appeal-form">
                         <input type="hidden" id="appeal-id">
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-grid">
                             <div class="form-group">
                                 <label>رقم الطعن</label>
                                 <input type="text" id="appeal-number" required>
@@ -196,7 +196,7 @@ export const AppealsModule = {
                             </div>
                         </div>
                         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
-                            <button type="button" id="close-modal-btn" class="btn" style="background:var(--text-muted); color:white;">إلغاء</button>
+                            <button type="button" id="close-modal-btn" class="btn btn-secondary">إلغاء</button>
                             <button type="submit" class="btn btn-primary">حفظ <i class="fas fa-save"></i></button>
                         </div>
                     </form>
@@ -350,6 +350,16 @@ export const AppealsModule = {
                     updatedAt: serverTimestamp()
                 };
 
+                const plaintiffVal = document.getElementById('appeal-plaintiff').value.trim();
+                const defendantVal = document.getElementById('appeal-defendant').value.trim();
+                
+                // update local storage autocomplete max 50 items
+                let recentNames = JSON.parse(localStorage.getItem('recentNames')) || [];
+                if (plaintiffVal && !recentNames.includes(plaintiffVal)) recentNames.push(plaintiffVal);
+                if (defendantVal && !recentNames.includes(defendantVal)) recentNames.push(defendantVal);
+                if (recentNames.length > 50) recentNames = recentNames.slice(-50);
+                localStorage.setItem('recentNames', JSON.stringify(recentNames));
+
                 try {
                     if (id) {
                         const appealRef = doc(db, "appeals", id);
@@ -422,19 +432,36 @@ export const AppealsModule = {
         const form = document.getElementById('appeal-form');
         form.reset();
 
-        // Fetch Lookups (Simplified for now, but linked to Firestore if collection 'settings' exists)
         try {
-            // Placeholder lookups or fetch from specialized settings
             const courtSelect = document.getElementById('appeal-court');
             const subjectSelect = document.getElementById('appeal-subject');
             
-            // Example static options if Firestore isn't ready
-            const courts = ["محكمة النقض - الدائرة الجنائية", "محكمة النقض - الدائرة المدنية", "محكمة النقض - دائرة فحص الطعون"];
-            const subjects = ["نقض جنائي", "نقض مدني", "إيجارات", "عمال", "تجاري"];
+            const docSnap = await getDoc(doc(db, "settings", "lookups"));
+            let courts = ["محكمة النقض - الدائرة الجنائية", "محكمة النقض - الدائرة المدنية", "محكمة النقض - دائرة فحص الطعون"];
+            let subjects = ["نقض جنائي", "نقض مدني", "إيجارات", "عمال", "تجاري"];
+            
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.courts && data.courts.length) courts = data.courts;
+                if (data.subjects && data.subjects.length) subjects = data.subjects;
+            }
             
             courtSelect.innerHTML = '<option value="">-- اختر من القائمة --</option>' + courts.map(c => `<option value="${c}">${c}</option>`).join('');
             subjectSelect.innerHTML = '<option value="">-- اختر من القائمة --</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
-        } catch(e) { console.error('Error in openModal', e); }
+
+            // Autocomplete datalist
+            const recentNames = JSON.parse(localStorage.getItem('recentNames')) || [];
+            let datalist = document.getElementById('recent-names-list');
+            if (!datalist) {
+                datalist = document.createElement('datalist');
+                datalist.id = 'recent-names-list';
+                document.body.appendChild(datalist);
+                document.getElementById('appeal-plaintiff').setAttribute('list', 'recent-names-list');
+                document.getElementById('appeal-defendant').setAttribute('list', 'recent-names-list');
+            }
+            datalist.innerHTML = recentNames.map(n => `<option value="${n}">`).join('');
+            
+        } catch(e) { console.error('Error in openModal lookups', e); }
         
         if (id) {
             title.textContent = "تعديل بيانات الطعن";
@@ -452,6 +479,15 @@ export const AppealsModule = {
         } else {
             title.textContent = "إضافة طعن جديد";
             document.getElementById('appeal-id').value = '';
+            
+            // Default Values pre-fill
+            const defaultCourt = localStorage.getItem('defaultCourt');
+            if (defaultCourt) document.getElementById('appeal-court').value = defaultCourt;
+            
+            // Remember defaults on change
+            document.getElementById('appeal-court').addEventListener('change', (e) => {
+                localStorage.setItem('defaultCourt', e.target.value);
+            });
         }
         
         modal.classList.remove('hidden');

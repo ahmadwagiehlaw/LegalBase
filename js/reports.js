@@ -40,8 +40,10 @@ export const ReportsModule = {
         container.innerHTML = `
             <!-- Filter Bar -->
             <div class="section-card" style="margin-bottom:20px; padding:20px; border-right:4px solid var(--accent-color);">
-                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px;">
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px;" class="print-hide">
                     <h4 style="color:var(--text-primary); white-space:nowrap;"><i class="fas fa-filter" style="color:var(--accent-color);"></i> &nbsp;فلترة التقارير</h4>
+                    
+                    <input type="text" id="report-print-title-input" placeholder="عنوان الطباعة..." style="padding:8px 12px; border-radius:8px; border:1px solid var(--accent-color); background:rgba(245,158,11,0.05); color:var(--text-primary); width:180px;" onkeyup="document.getElementById('report-print-title').textContent = this.value || 'تقرير الأحكام الصادرة'">
                     
                     <select id="filter-result" style="padding:9px 14px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); font-family:var(--font-primary);">
                         <option value="">نوع الحكم (الكل)</option>
@@ -58,10 +60,12 @@ export const ReportsModule = {
                     <input type="text" id="filter-court" placeholder="بحث بالمحكمة..." style="padding:9px 14px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-primary); font-family:var(--font-primary);">
 
                     <button id="apply-filter-btn" class="btn btn-primary" style="white-space:nowrap;"><i class="fas fa-search"></i> تطبيق الفلتر</button>
-                    <button id="reset-filter-btn" class="btn" style="background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary); white-space:nowrap;"><i class="fas fa-times"></i> إعادة ضبط</button>
+                    <button id="reset-filter-btn" class="btn btn-secondary" style="white-space:nowrap;"><i class="fas fa-times"></i> إعادة ضبط</button>
                     <button id="print-report-btn" class="btn btn-primary" style="background:#1e293b; margin-right:auto;" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
                 </div>
             </div>
+
+            <h2 id="report-print-title" class="print-only">تقرير الأحكام الصادرة</h2>
 
             <!-- Stats Overview -->
             <div id="stats-overview" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:15px; margin-bottom:25px;"></div>
@@ -106,14 +110,6 @@ export const ReportsModule = {
                 </div>
                 <div id="case-report-output" style="margin-top:20px;"></div>
             </div>
-
-            <style>
-                @media print {
-                    .actions-bar, .sidebar, .top-header, #filter-block, button { display: none !important; }
-                    .main-content { margin-right: 0 !important; padding: 0 !important; }
-                    .section-card { box-shadow: none !important; border: 1px solid #ddd !important; }
-                }
-            </style>
         `;
     },
 

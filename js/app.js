@@ -23,18 +23,23 @@ const App = {
     init: () => {
         // Init UI Components
         UI.initTheme();
+        App.applyCustomTabs();
         document.getElementById('theme-toggle')?.addEventListener('click', UI.toggleTheme);
         
         document.getElementById('toggle-sidebar')?.addEventListener('click', () => {
             const sidebar = document.querySelector('.sidebar');
-            sidebar?.classList.toggle('collapsed');
-            
-            // Adjust main content margin dynamically if needed
-            const mainContent = document.querySelector('.main-content');
-            if (sidebar.classList.contains('collapsed')) {
-                mainContent.style.marginRight = 'var(--sidebar-collapsed)';
+            if (window.innerWidth <= 768) {
+                sidebar?.classList.toggle('open');
             } else {
-                mainContent.style.marginRight = 'var(--sidebar-width)';
+                sidebar?.classList.toggle('collapsed');
+                
+                // Adjust main content margin dynamically if needed
+                const mainContent = document.querySelector('.main-content');
+                if (sidebar.classList.contains('collapsed')) {
+                    mainContent.style.marginRight = 'var(--sidebar-collapsed)';
+                } else {
+                    mainContent.style.marginRight = 'var(--sidebar-width)';
+                }
             }
         });
 
@@ -82,6 +87,27 @@ const App = {
         
         // Init globally available modules
         ImportModule.init();
+    },
+
+    applyCustomTabs: () => {
+        const customTabs = JSON.parse(localStorage.getItem('customTabs')) || {};
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            const route = link.dataset.route;
+            const tabSettings = customTabs[route];
+            if (tabSettings) {
+                if (tabSettings.hidden && route !== 'settings') {
+                    link.parentElement.style.display = 'none';
+                } else {
+                    link.parentElement.style.display = 'block';
+                    if (tabSettings.name) {
+                        const span = link.querySelector('span');
+                        if (span) span.textContent = tabSettings.name;
+                    }
+                }
+            } else {
+                link.parentElement.style.display = 'block';
+            }
+        });
     },
 
     loadIdentity: async () => {

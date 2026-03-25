@@ -18,6 +18,7 @@ export const AdminModule = {
         AdminModule.setupCloudStorageUI();
         AdminModule.applyStaticLabels();
         AdminModule.refreshCloudConnectionStatus();
+        AdminModule.loadTabsSettings();
         AdminModule.bindEvents();
     },
 
@@ -280,6 +281,72 @@ export const AdminModule = {
         }
     },
 
+    loadTabsSettings: () => {
+        const customTabs = JSON.parse(localStorage.getItem('customTabs')) || {};
+        const defaultScreen = localStorage.getItem('defaultStartScreen') || 'dashboard';
+        const defaultTabs = [
+            { route: 'dashboard', defaultName: 'لوحة التحكم' },
+            { route: 'appeals', defaultName: 'الدعاوى والطعون' },
+            { route: 'agenda', defaultName: 'أجندة الجلسات' },
+            { route: 'sessions', defaultName: 'سجل الجلسات' },
+            { route: 'tasks', defaultName: 'إدارة المهام' },
+            { route: 'memos', defaultName: 'المذكرات القانونية' },
+            { route: 'library', defaultName: 'المكتبة والبحوث' },
+            { route: 'circulars', defaultName: 'القرارات والتعاميم' },
+            { route: 'rolls', defaultName: 'رولات الجلسات (PDF)' },
+            { route: 'attachments', defaultName: 'الأرشيف الرقمي' },
+            { route: 'reports', defaultName: 'التقارير الذكية' },
+            { route: 'settings', defaultName: 'الإعدادات العامة' }
+        ];
+
+        const container = document.getElementById('tabs-customization-container');
+        if (!container) return;
+
+        container.innerHTML = defaultTabs.map(tab => {
+            const isHidden = customTabs[tab.route]?.hidden || false;
+            const customName = customTabs[tab.route]?.name || tab.defaultName;
+            const disableHide = tab.route === 'settings' ? 'disabled' : '';
+            
+            return `
+                <div style="border:1px solid var(--border-color); padding:10px; border-radius:8px; background:var(--surface-bg);">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <input type="checkbox" id="hide-tab-${tab.route}" ${isHidden ? 'checked' : ''} ${disableHide}>
+                        <label for="hide-tab-${tab.route}" style="font-size:0.9rem; color:var(--text-secondary); cursor:pointer;">إخفاء التبويب</label>
+                    </div>
+                    <input type="text" id="name-tab-${tab.route}" class="form-control" value="${customName}" placeholder="${tab.defaultName}" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary);">
+                </div>
+            `;
+        }).join('');
+
+        const defaultScreenSelect = document.getElementById('default-start-screen');
+        if (defaultScreenSelect) defaultScreenSelect.value = defaultScreen;
+    },
+
+    saveTabsSettings: () => {
+        const defaultTabs = ['dashboard', 'appeals', 'agenda', 'sessions', 'tasks', 'memos', 'library', 'circulars', 'rolls', 'attachments', 'reports', 'settings'];
+        const customTabs = {};
+        
+        defaultTabs.forEach(route => {
+            const hideCheckbox = document.getElementById(`hide-tab-${route}`);
+            const nameInput = document.getElementById(`name-tab-${route}`);
+            if (hideCheckbox && nameInput) {
+                customTabs[route] = {
+                    hidden: hideCheckbox.checked,
+                    name: nameInput.value.trim()
+                };
+            }
+        });
+        
+        const defaultScreenVal = document.getElementById('default-start-screen')?.value || 'dashboard';
+        
+        localStorage.setItem('customTabs', JSON.stringify(customTabs));
+        localStorage.setItem('defaultStartScreen', defaultScreenVal);
+        UI.showToast("تم حفظ التخصيصات بنجاح", "success");
+        if (window.App && window.App.applyCustomTabs) {
+            window.App.applyCustomTabs();
+        }
+    },
+
     renderBaseUI: () => {
         const container = document.getElementById('content-container');
         if (!container) return;
@@ -331,6 +398,31 @@ export const AdminModule = {
                     </div>
                     <div class="alert alert-info" style="background:#e6fffa; color:#234e52; padding:15px; border-radius:8px; font-size:0.9rem;">
                         <i class="fas fa-info-circle"></i> <strong>إدارة المستخدمين:</strong> يتم إدارتها حالياً عبر لوحة تحكم Firebase.
+                    </div>
+                </div>
+
+                <!-- Tabs Customization -->
+                <div class="grid-col-8 section-card">
+                    <div class="section-header" style="margin-bottom:20px; padding-bottom:15px;">
+                        <h3><i class="fas fa-bars" style="color:var(--accent-color);"></i> &nbsp;تخصيص التبويبات (إخفاء وتغيير الأسماء)</h3>
+                    </div>
+                    <div id="tabs-customization-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+                        <!-- Rendered dynamically -->
+                    </div>
+                    
+                    <div style="margin-top:25px; border-top:1px solid var(--border-color); padding-top:20px;">
+                        <label style="display:block; font-weight:700; font-size:0.9rem; margin-bottom:8px; color:var(--text-primary);">شاشة البدء الافتراضية</label>
+                        <select id="default-start-screen" class="form-control" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary);">
+                            <option value="dashboard">لوحة التحكم</option>
+                            <option value="appeals">الدعاوى والطعون</option>
+                            <option value="agenda">أجندة الجلسات</option>
+                            <option value="reports">التقارير الذكية</option>
+                            <option value="tasks">إدارة المهام</option>
+                        </select>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+                        <button id="save-tabs-btn" class="btn btn-primary"><i class="fas fa-save"></i> حفظ التخصيصات</button>
                     </div>
                 </div>
 
@@ -428,6 +520,7 @@ export const AdminModule = {
 
     bindEvents: () => {
         document.getElementById('save-identity-btn')?.addEventListener('click', AdminModule.saveIdentity);
+        document.getElementById('save-tabs-btn')?.addEventListener('click', AdminModule.saveTabsSettings);
         document.getElementById('save-cloud-settings-btn')?.addEventListener('click', async () => {
             await AdminModule.saveCloudStorage();
             AdminModule.refreshCloudConnectionStatus();
