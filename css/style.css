@@ -751,3 +751,51 @@ h1, h2, h3, h4, h5, h6 {
         display: none !important;
     }
 }
+
+/* PWA Install Prompt */
+#pwa-install-prompt {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150%);
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    width: 90%;
+    max-width: 450px;
+    z-index: 9999;
+    backdrop-filter: blur(10px);
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#pwa-install-prompt.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+.pwa-content {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.pwa-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--accent-color);
+    color: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.pwa-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}

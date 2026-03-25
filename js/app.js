@@ -75,7 +75,15 @@ const App = {
                 AppealsStore.load({ allowStale: true }).catch((error) => {
                     console.warn('Could not warm appeals cache:', error);
                 });
-                App.navigate('dashboard');
+                
+                const navRoute = localStorage.getItem('defaultStartScreen') || 'dashboard';
+                App.navigate(navRoute);
+                
+                // Highlight the correct tab
+                document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+                const activeLink = document.querySelector(`.nav-links a[data-route="${navRoute}"]`);
+                if(activeLink) activeLink.classList.add('active');
+
                 App.loadIdentity();
             },
             () => {
@@ -87,6 +95,60 @@ const App = {
         
         // Init globally available modules
         ImportModule.init();
+
+        // Register Service Worker & PWA Logic
+        App.initPWA();
+    },
+
+    initPWA: () => {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(error => {
+                    console.log('SW registration failed: ', error);
+                });
+            });
+        }
+
+        let deferredPrompt;
+        const pwaPrompt = document.getElementById('pwa-install-prompt');
+        const installBtn = document.getElementById('pwa-install-btn');
+        const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+        if (!pwaPrompt) return;
+
+        if (localStorage.getItem('hidePwaPrompt') === 'true') {
+            return;
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Show the custom UI after a small delay
+            setTimeout(() => {
+                pwaPrompt.classList.remove('hidden');
+                setTimeout(() => pwaPrompt.classList.add('show'), 50);
+            }, 3000); 
+        });
+
+        installBtn?.addEventListener('click', () => {
+            pwaPrompt.classList.remove('show');
+            setTimeout(() => pwaPrompt.classList.add('hidden'), 500);
+            
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt = null;
+                });
+            }
+        });
+
+        dismissBtn?.addEventListener('click', () => {
+            pwaPrompt.classList.remove('show');
+            setTimeout(() => pwaPrompt.classList.add('hidden'), 500);
+            localStorage.setItem('hidePwaPrompt', 'true');
+        });
     },
 
     applyCustomTabs: () => {

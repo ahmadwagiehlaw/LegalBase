@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SLA - منصة إدارة الطعون والجلسات</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <!-- Google Fonts: Cairo - Full Weight Range -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
@@ -114,6 +120,21 @@
     
     <!-- Toast Notifications Container -->
     <div id="toast-container"></div>
+
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" class="hidden">
+        <div class="pwa-content">
+            <div class="pwa-icon"><i class="fas fa-layer-group"></i></div>
+            <div class="pwa-text">
+                <h4 style="margin:0; margin-bottom:5px; color:var(--text-primary); font-size:1.05rem;">ثبّت التطبيق (SLA)</h4>
+                <p style="margin:0; color:var(--text-secondary); font-size:0.85rem;">يمكنك تثبيت هذا التطبيق على جهازك للوصول السريع والعمل كبرنامج مستقل.</p>
+            </div>
+        </div>
+        <div class="pwa-actions">
+            <button id="pwa-install-btn" class="btn btn-primary">تثبيت التطبيق <i class="fas fa-download"></i></button>
+            <button id="pwa-dismiss-btn" class="btn btn-secondary">عدم الإظهار مجدداً</button>
+        </div>
+    </div>
 
     <!-- Application Scripts -->
     <script type="module" src="js/config.js"></script>

@@ -263,6 +263,7 @@ export const AppealsModule = {
                 <td style="padding:15px; display:flex; gap:10px; justify-content:flex-end;">
                     <a class="action-icon view-appeal" data-id="${appeal.id}" title="عرض التفاصيل"><i class="fas fa-eye" style="color:var(--accent-color);"></i></a>
                     <a class="action-icon edit-appeal" data-id="${appeal.id}" title="تعديل"><i class="fas fa-edit" style="color:var(--secondary-color);"></i></a>
+                    <a class="action-icon clone-appeal" data-id="${appeal.id}" title="نسخ ببيانات مشابهة"><i class="fas fa-copy" style="color:var(--success-color);"></i></a>
                     <a class="action-icon open-agenda" data-id="${appeal.id}" title="الأجندة والمرفقات"><i class="fas fa-calendar-alt" style="color:var(--nav-active);"></i></a>
                     <a class="action-icon delete-appeal" data-id="${appeal.id}" title="حذف"><i class="fas fa-trash" style="color:var(--danger-color);"></i></a>
                 </td>
@@ -292,6 +293,13 @@ export const AppealsModule = {
             btn.addEventListener('click', (e) => {
                 const id = e.currentTarget.dataset.id;
                 AppealsModule.openModal(id);
+            });
+        });
+
+        document.querySelectorAll('.clone-appeal').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                AppealsModule.cloneAppeal(id);
             });
         });
 
@@ -491,6 +499,21 @@ export const AppealsModule = {
         }
         
         modal.classList.remove('hidden');
+    },
+
+    cloneAppeal: async (id) => {
+        const appeal = AppealsModule.appeals.find(a => a.id === id);
+        if (!appeal) return;
+        
+        await AppealsModule.openModal(); // Opens as new
+        
+        document.getElementById('appeal-court').value = appeal.court || '';
+        document.getElementById('appeal-subject').value = appeal.subject || '';
+        document.getElementById('appeal-plaintiff').value = appeal.plaintiff || '';
+        document.getElementById('appeal-defendant').value = appeal.defendant || '';
+        // Note: Number and Year are intentionally left blank since it's a new case
+        
+        UI.showToast("تم فتح قضية جديدة ونسخ البيانات الأساسية لتسهيل الإدخال", "info");
     }
 };
 
