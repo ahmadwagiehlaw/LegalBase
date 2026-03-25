@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLA - منصة إدارة الطعون والجلسات</title>
+    <!-- Google Fonts: Cairo - Full Weight Range -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS (XLSX) for Excel/CSV import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="light-mode">
+    <div id="app">
+        <!-- Auth View -->
+        <div id="auth-view" class="view active">
+            <div class="auth-container">
+                <div class="auth-box glass-panel">
+                    <h2>تسجيل الدخول</h2>
+                    <p>أهلاً بك في منصة إدارة الطعون والجلسات</p>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label>البريد الإلكتروني</label>
+                            <input type="email" id="login-email" required placeholder="admin@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>كلمة المرور</label>
+                            <input type="password" id="login-password" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">دخول <i class="fas fa-sign-in-alt"></i></button>
+                    </form>
+                    <div id="auth-error" class="error-text"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard View -->
+        <div id="main-view" class="view hidden layout-container active">
+            <!-- Sidebar -->
+            <nav class="sidebar">
+                <div class="sidebar-header" style="border-bottom:none; padding-bottom:5px;">
+                    <i class="fas fa-balance-scale" style="font-size: 2.5rem; color: var(--accent-color);"></i>
+                </div>
+                
+                <div class="sidebar-cta">
+                    <button id="quick-add-case" class="btn-new-case">
+                        <i class="fas fa-plus"></i> قـضـيـة جـديـدَة
+                    </button>
+                </div>
+
+                <ul class="nav-links">
+                    <li><a href="#" data-route="dashboard" class="active"><i class="fas fa-chart-pie"></i> لوحة التحكم</a></li>
+                    <li><a href="#" data-route="appeals"><i class="fas fa-gavel"></i> الدعاوى والطعون</a></li>
+                    <li><a href="#" data-route="agenda"><i class="fas fa-calendar-alt"></i> أجندة الجلسات</a></li>
+                    <li><a href="#" data-route="sessions"><i class="fas fa-calendar-check"></i> سجل الجلسات</a></li>
+                    <li><a href="#" data-route="tasks"><i class="fas fa-tasks"></i> إدارة المهام</a></li>
+                    <li><a href="#" data-route="memos"><i class="fas fa-file-signature"></i> المذكرات القانونية</a></li>
+                    <li><a href="#" data-route="library"><i class="fas fa-book-reader"></i> المكتبة والبحوث</a></li>
+                    <li><a href="#" data-route="circulars"><i class="fas fa-bullhorn"></i> القرارات والتعاميم</a></li>
+                    <li><a href="#" data-route="rolls"><i class="fas fa-scroll"></i> رولات الجلسات (PDF)</a></li>
+                    <li><a href="#" data-route="attachments"><i class="fas fa-archive"></i> الأرشيف الرقمي</a></li>
+                    <li><a href="#" data-route="reports"><i class="fas fa-chart-bar"></i> التقارير الذكية</a></li>
+                    <li><a href="#" data-route="settings"><i class="fas fa-sliders-h"></i> الإعدادات العامة</a></li>
+                </ul>
+                <div class="sidebar-footer">
+                    <button id="logout-btn" class="btn btn-block"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Header -->
+                <header class="top-header">
+                    <div class="header-right" style="display:flex; align-items:center; gap:15px;">
+                        <button id="toggle-sidebar" class="icon-btn" style="color:var(--nav-text);"><i class="fas fa-bars"></i></button>
+                        <div class="app-logo-text">
+                            <h3 id="app-main-title" style="margin:0; font-weight:800; color:#ffffff; font-size:1.1rem; letter-spacing:1px; line-height:1.2; font-family:var(--font-primary);">نظام إدارة الطعون</h3>
+                            <small id="app-sub-title" style="color:rgba(245,158,11,0.9); font-size:0.7rem; letter-spacing:1px;">مرحباً بكم في المنصة القضائية</small>
+                        </div>
+                    </div>
+
+                    <div class="header-center" style="flex:1; display:flex; justify-content:center;">
+                        <div class="header-search" style="width:100%; max-width:600px;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="البحث عن القضايا، المواعيد، المهام...">
+                        </div>
+                    </div>
+
+                    <div class="header-left" style="display:flex; align-items:center; gap:15px;">
+                        <button class="icon-btn"><i class="fas fa-bell"></i></button>
+                        <button id="theme-toggle" class="icon-btn"><i class="fas fa-moon"></i></button>
+                        <div class="user-profile">
+                            <div style="text-align:right;">
+                                <div id="user-name" style="font-weight:700; font-size:0.9rem; color:#ffffff;">المستشار</div>
+                                <div id="user-role" style="font-size:0.72rem; color:rgba(245,158,11,0.9);">مستشار قانوني</div>
+                            </div>
+                            <div class="user-avatar" style="background:var(--accent-color); color:white;">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Dynamic Content Container -->
+                <div id="content-container" class="content-container">
+                    <!-- Views will be injected here by app.js -->
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Toast Notifications Container -->
+    <div id="toast-container"></div>
+
+    <!-- Application Scripts -->
+    <script type="module" src="js/config.js"></script>
+    <!-- Modals Container -->
+    <div id="modals-container">
+        <!-- Data Import Wizard Modal -->
+        <div id="import-wizard-modal" class="modal-backdrop hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; display:flex; justify-content:center; align-items:center;">
+            <div class="section-card modal-content" style="width: 97%; max-width: 1000px; padding: 30px; max-height: 92vh; overflow-y: auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:15px;">
+                    <h3 style="color:var(--text-primary);"><i class="fas fa-file-import" style="color:var(--accent-color);"></i> &nbsp;معالج استيراد البيانات</h3>
+                    <button id="close-import-wizard" class="icon-btn" style="color:var(--text-muted);"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <!-- Step 1: Upload File -->
+                <div id="import-step-1">
+                    <p style="margin-bottom:15px; color:var(--text-muted);">قم برفع ملف Excel (.xlsx) أو CSV يحتوي على بيانات الطعون.</p>
+                    <div style="border: 2px dashed var(--accent-color); padding: 40px; text-align: center; border-radius: 12px; background: #f8fafc; cursor:pointer;" id="import-drop-zone">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 15px;"></i>
+                        <h4>اسحب وأفلت الملف هنا أو اضغط للاختيار</h4>
+                        <input type="file" id="import-file-input" accept=".xlsx, .xls, .csv" style="display:none;">
+                    </div>
+                </div>
+
+                <!-- Step 2: Column Mapping -->
+                <div id="import-step-2" class="hidden">
+                    <p style="margin-bottom:15px; color:var(--text-muted);">يرجى مطابقة أعمدة الملف الخاص بك مع حقول النظام الأساسية.</p>
+                    <div id="mapping-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+                        <!-- Mapping fields will be injected here -->
+                    </div>
+                    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                        <button id="import-back-btn" class="btn" style="background:#64748b; color:white;"><i class="fas fa-arrow-right"></i> السابق</button>
+                        <button id="import-preview-btn" class="btn btn-primary" style="background:var(--accent-color);">معاينة البيانات <i class="fas fa-arrow-left"></i></button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Preview and Confirm -->
+                <div id="import-step-3" class="hidden">
+                    <p style="margin-bottom:15px; color:var(--text-secondary); font-weight:600;">معاينة أول 5 صفوف — إجمالي: <span id="import-total-stats" style="color:var(--accent-color);">0</span></p>
+                    <div style="overflow-x:auto; margin-bottom:20px;">
+                        <table class="premium-table" id="import-preview-table">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px;">
+                        <button id="import-back-map-btn" class="btn" style="background:#64748b; color:white;"><i class="fas fa-arrow-right"></i> تعديل المطابقة</button>
+                        <button id="import-confirm-btn" class="btn btn-primary" style="background:var(--success-color);">تأكيد واستيراد <i class="fas fa-check-circle"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
