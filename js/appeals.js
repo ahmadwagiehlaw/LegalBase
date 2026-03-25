@@ -205,73 +205,6 @@ export const AppealsModule = {
                     </form>
                 </div>
             </div>
-
-            <!-- Comprehensive Case Dashboard Modal (Full Screen) -->
-            <div id="case-dashboard-modal" class="modal-backdrop hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:2000; overflow-y:auto; padding:20px;">
-                <div class="glass-panel" style="width:100%; max-width:1200px; margin: 0 auto; min-height:90vh; border-radius:16px; position:relative; display:flex; flex-direction:column;">
-                    
-                    <!-- Dashboard Header -->
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:25px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); border-radius:16px 16px 0 0;">
-                        <div>
-                            <h2 style="margin:0; color:var(--accent-color); font-size:1.8rem; display:flex; align-items:center; gap:10px;">
-                                <i class="fas fa-folder-open"></i> ملف الطعن: <span id="dash-appeal-number"></span> لسنة <span id="dash-appeal-year"></span>
-                            </h2>
-                            <div style="display:flex; gap:15px; margin-top:10px; color:var(--text-secondary); font-weight:600; flex-wrap:wrap;">
-                                <span><i class="fas fa-gavel"></i> الدائرة: <span id="dash-court" style="color:var(--text-primary);"></span></span>
-                                <span><i class="fas fa-balance-scale"></i> الموضوع: <span id="dash-subject" style="color:var(--text-primary);"></span></span>
-                                <span><i class="fas fa-user"></i> الطاعن: <span id="dash-plaintiff" style="color:var(--text-primary);"></span></span>
-                                <span><i class="fas fa-user-tie"></i> المطعون ضده: <span id="dash-defendant" style="color:var(--text-primary);"></span></span>
-                                <span><i class="fas fa-info-circle"></i> الحالة: <span id="dash-status" class="badge"></span></span>
-                            </div>
-                        </div>
-                        <div style="display:flex; gap:10px;">
-                            <button id="dash-add-note-btn" class="btn btn-primary" style="white-space:nowrap;"><i class="fas fa-plus"></i> إضافة تحليل</button>
-                            <button id="close-dashboard-btn" class="icon-btn" style="background:#ef4444; color:white; width:45px; height:45px; font-size:1.2rem;"><i class="fas fa-times"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- Dashboard Body -->
-                    <div style="padding:25px; flex:1; display:flex; flex-direction:column; gap:25px; background:var(--bg-color); border-radius:0 0 16px 16px;">
-                        
-                        <!-- Add Note Form (Hidden by default) -->
-                        <div id="add-note-form-container" class="section-card hidden" style="border:1px solid var(--accent-color); background:rgba(245, 158, 11, 0.05); padding:20px; animation: fadeIn 0.3s ease-out;">
-                            <h4 style="margin-top:0; color:var(--accent-color);"><i class="fas fa-pen"></i> إضافة تحليل أو ملاحظة جديدة</h4>
-                            <div class="form-group" style="text-align:right;">
-                                <label style="display:block; margin-bottom:8px; font-weight:700;">موضوع الملاحظة (مثال: تحليل الوقائع، أدلة الثبوت)</label>
-                                <input type="text" id="note-title" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary);" placeholder="عنون الملاحظة هنا...">
-                            </div>
-                            <div class="form-group" style="margin-top:15px; text-align:right;">
-                                <label style="display:block; margin-bottom:8px; font-weight:700;">التفاصيل أو رابط المرفق (يدعم إظهار الصور من Google Drive)</label>
-                                <textarea id="note-content" rows="4" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary); resize:vertical; margin-bottom:12px;" placeholder="اكتب ملاحظتك التوضيحية هنا، أو قم بلصق رابط صورة درايف..."></textarea>
-                                
-                                <label style="display:block; margin-bottom:8px; font-weight:700; color:var(--text-secondary); font-size:0.9rem;">الرفع المباشر للملفات والصور (اختياري)</label>
-                                <div style="display:flex; align-items:center; gap:10px; background:var(--bg-color); padding:10px; border-radius:8px; border:1px dashed var(--border-color); flex-wrap:wrap;">
-                                    <div style="flex:1; min-width:200px;">
-                                        <input type="file" id="note-file-upload" style="width:100%;" class="form-control">
-                                    </div>
-                                    <select id="note-cloud-provider" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--panel-bg); color:var(--text-primary);">
-                                        <option value="google_drive">جوجل درايف (G.Drive)</option>
-                                        <option value="onedrive">ون درايف (OneDrive)</option>
-                                    </select>
-                                    <button id="trigger-note-upload-btn" type="button" class="btn btn-secondary" style="white-space:nowrap; border-color:var(--border-color); color:var(--text-primary);"><i class="fas fa-cloud-upload-alt" style="color:var(--accent-color);"></i> رفع وإرفاق الرابط</button>
-                                </div>
-                                <div id="note-upload-status" class="hidden" style="margin-top:10px; color:var(--success-color); font-size:0.85rem; font-weight:bold;">
-                                    <i class="fas fa-spinner fa-spin"></i> جاري رفع الملف وتأمين الرابط...
-                                </div>
-                            </div>
-                            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                                <button id="cancel-note-btn" class="btn btn-secondary">إلغاء</button>
-                                <button id="save-note-btn" class="btn btn-primary" style="background:var(--success-color); color:white;">حفظ الإضافة <i class="fas fa-check"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Notes Feed (Timeline style) -->
-                        <div id="notes-feed-container" style="display:flex; flex-direction:column; gap:20px;">
-                            <!-- Notes will be injected here dynamically -->
-                        </div>
-                    </div>
-                </div>
-            </div>
         `;
         
         if(!document.getElementById('appeals-style')) {
@@ -697,7 +630,6 @@ export const AppealsModule = {
     },
 
     viewAppeal: (id) => {
-        // Query store directly since AppealsModule array might be empty if the module hasn't been init()'d yet.
         const appealsData = AppealsStore.getAll();
         const appeal = appealsData.find(a => a.id === id);
         
@@ -706,97 +638,11 @@ export const AppealsModule = {
             return;
         }
 
-        const modal = document.getElementById('case-dashboard-modal');
-        modal.dataset.currentAppealId = id;
-
-        // Fill Header
-        document.getElementById('dash-appeal-number').textContent = appeal.appealNumber || '---';
-        document.getElementById('dash-appeal-year').textContent = appeal.year || '---';
-        document.getElementById('dash-court').textContent = appeal.court || '---';
-        document.getElementById('dash-subject').textContent = appeal.subject || '---';
-        document.getElementById('dash-plaintiff').textContent = appeal.plaintiff || '---';
-        document.getElementById('dash-defendant').textContent = appeal.defendant || '---';
-        
-        const statusEl = document.getElementById('dash-status');
-        statusEl.textContent = appeal.status || 'متداول';
-        statusEl.className = 'badge ' + (appeal.status === 'محجوز للحكم' ? 'محجوز' : (appeal.status === 'منتهي' ? 'منتهي' : 'متداول'));
-
-        // Render Notes
-        AppealsModule.renderDashNotes(appeal.caseNotes || []);
-
-        modal.classList.remove('hidden');
-    },
-
-    renderDashNotes: (notes) => {
-        const container = document.getElementById('notes-feed-container');
-        if (!notes || notes.length === 0) {
-            container.innerHTML = `
-                <div style="text-align:center; padding:40px; color:var(--text-muted); background:var(--surface-bg); border-radius:12px; border:1px dashed var(--border-color);">
-                    <i class="fas fa-folder-open" style="font-size:3rem; margin-bottom:15px; opacity:0.5;"></i>
-                    <p>لا توجد ملاحظات أو تحليلات مسجلة لهذا الطعن.</p>
-                </div>
-            `;
-            return;
+        sessionStorage.setItem('current_view_case_id', id);
+        if (window.App && typeof window.App.navigate === 'function') {
+            window.App.navigate('case-details');
         }
-
-        container.innerHTML = notes.map(note => {
-            const dateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-            
-            let contentHtml = note.content;
-            
-            // Check for Google Drive previews
-            const gDriveRegex = /https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|preview).*?/g;
-            if (gDriveRegex.test(contentHtml)) {
-                contentHtml = contentHtml.replace(gDriveRegex, (match, fileId) => {
-                    return `<div style="margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid var(--border-color);"><iframe src="https://drive.google.com/file/d/${fileId}/preview" width="100%" height="400" allow="autoplay" style="border:none;"></iframe></div>`;
-                });
-            } 
-            // Generic images
-            else if (contentHtml.match(/\.(jpeg|jpg|gif|png)$/i)) {
-                contentHtml = contentHtml.replace(/(https?:\/\/[^\s]+)/g, '<img src="$1" style="max-width:100%; max-height:400px; border-radius:8px; margin-top:10px;" alt="مرفق">');
-            }
-            // Normal URLs and newlines
-            else {
-                contentHtml = Utils.escapeHTML(contentHtml).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent-color); text-decoration:underline;">$1</a>').replace(/\n/g, '<br>');
-            }
-
-            return `
-                <div class="section-card" style="padding:20px; border-right:4px solid var(--accent-color); position:relative;" id="${note.id}">
-                    <button class="icon-btn delete-note-btn" data-id="${note.id}" style="position:absolute; top:15px; left:15px; color:var(--danger-color); background:rgba(239, 68, 68, 0.1); width:32px; height:32px; font-size:0.9rem;" title="حذف الملاحظة"><i class="fas fa-trash"></i></button>
-                    <h4 style="margin-top:0; margin-bottom:10px; color:var(--text-primary); padding-left:40px;">${Utils.escapeHTML(note.title)}</h4>
-                    <div style="font-size:0.95rem; color:var(--text-secondary); line-height:1.6; word-wrap:break-word;">
-                        ${contentHtml}
-                    </div>
-                    <div style="margin-top:15px; font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:5px;">
-                        <i class="far fa-clock"></i> ${dateStr}
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        // Bind delete
-        container.querySelectorAll('.delete-note-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                if(!confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) return;
-                const noteId = e.currentTarget.dataset.id;
-                const appealId = document.getElementById('case-dashboard-modal').dataset.currentAppealId;
-                
-                try {
-                    const appeal = AppealsModule.appeals.find(a => a.id === appealId);
-                    const updatedNotes = (appeal.caseNotes || []).filter(n => n.id !== noteId);
-                    
-                    await updateDoc(doc(db, "appeals", appealId), { caseNotes: updatedNotes });
-                    AppealsStore.upsert({ id: appealId, caseNotes: updatedNotes });
-                    
-                    UI.showToast("تم الحذف بنجاح", "success");
-                    AppealsModule.renderDashNotes(updatedNotes);
-                } catch(error) {
-                    console.error('Delete note failed', error);
-                    UI.showToast("خطأ أثناء الحذف", "error");
-                }
-            });
-        });
-    }
+    },
 };
 
 window.AppealsModule = AppealsModule;

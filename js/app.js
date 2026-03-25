@@ -17,6 +17,7 @@ import { LibraryModule } from './library.js';
 import { AgendaModule } from './agenda.js';
 import { db } from './config.js';
 import { AppealsStore } from './appeals-store.js';
+import { CaseDetailsModule } from './case-details.js';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const App = {
@@ -330,6 +331,11 @@ const App = {
             case 'settings':
                 if(title) title.textContent = 'الإعدادات والإدارة';
                 AdminModule.init();
+                break;
+            case 'case-details':
+                if(title) title.textContent = 'ملف الطعن التحليلي';
+                const id = sessionStorage.getItem('current_view_case_id');
+                if (id) CaseDetailsModule.loadCase(id);
                 break;
             default:
                 if(title) title.textContent = route;
