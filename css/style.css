@@ -2096,6 +2096,279 @@ body::after {
     border-top: 1px solid var(--glass-border);
 }
 
+.import-overlay {
+    z-index: 4200;
+}
+
+.import-modal-card {
+    width: min(980px, 100%);
+    max-height: min(88vh, 860px);
+    background:
+        radial-gradient(circle at top, rgba(96, 165, 250, 0.16), transparent 32%),
+        linear-gradient(180deg, rgba(24, 35, 55, 0.98), rgba(12, 20, 34, 0.98));
+}
+
+.import-modal-header {
+    align-items: flex-start;
+}
+
+.import-modal-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(96, 165, 250, 0.12);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    color: #bfd9ff;
+    font-size: 0.82rem;
+    margin-bottom: 12px;
+}
+
+.import-modal-header h3 {
+    margin: 0;
+    font-size: 1.45rem;
+}
+
+.import-modal-header p {
+    margin: 10px 0 0;
+    max-width: 720px;
+    line-height: 1.75;
+}
+
+.import-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.import-hero {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.import-hero-stat {
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.import-hero-stat span {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.import-hero-stat strong {
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+.import-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 14px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+}
+
+.import-message ion-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.import-message-info {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.28);
+    color: #c7dcff;
+}
+
+.import-message-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.28);
+    color: #b9f4dd;
+}
+
+.import-message-error {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.28);
+    color: #ffc9c9;
+}
+
+.import-step {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.import-dropzone {
+    width: 100%;
+    border: 1px dashed rgba(148, 163, 184, 0.35);
+    background:
+        radial-gradient(circle at top, rgba(96, 165, 250, 0.14), transparent 36%),
+        rgba(15, 23, 42, 0.58);
+    border-radius: 26px;
+    padding: 34px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    text-align: right;
+    cursor: pointer;
+    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.import-dropzone:hover,
+.import-dropzone.is-dragover {
+    border-color: rgba(96, 165, 250, 0.55);
+    box-shadow: 0 18px 40px rgba(37, 99, 235, 0.18);
+    transform: translateY(-1px);
+}
+
+.import-dropzone.is-busy {
+    opacity: 0.78;
+}
+
+.import-dropzone-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(96, 165, 250, 0.12);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    color: #8ec5ff;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.import-dropzone-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.import-dropzone-copy h4 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.import-dropzone-copy p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.import-dropzone-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.import-dropzone-tags span,
+.import-summary-pill {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.import-file-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.import-file-meta ion-icon {
+    font-size: 1.4rem;
+    color: var(--primary);
+}
+
+.import-file-meta strong,
+.import-summary-pill strong {
+    display: block;
+    color: var(--text-main);
+}
+
+.import-file-meta span,
+.import-summary-pill span {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.import-summary-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.import-mapping-head h4 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.import-mapping-head p {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+}
+
+.import-mapping-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.import-map-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.import-map-card.is-required {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(96, 165, 250, 0.22);
+}
+
+.import-map-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.import-map-select {
+    width: 100%;
+    min-height: 46px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-main);
+    padding: 10px 12px;
+    outline: none;
+}
+
+.import-modal-footer {
+    justify-content: space-between;
+}
+
+.import-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .option-list-toolbar {
     display: flex;
     gap: 10px;
@@ -2164,6 +2437,23 @@ body::after {
     .popup-card {
         max-height: 88vh;
         border-radius: 18px;
+    }
+
+    .import-hero,
+    .import-mapping-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .import-dropzone {
+        padding: 24px 18px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .import-modal-footer,
+    .import-footer-actions {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .option-list-toolbar,

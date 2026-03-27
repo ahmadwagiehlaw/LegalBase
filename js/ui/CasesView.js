@@ -3,18 +3,70 @@ import { ImportModal } from './ImportModal.js';
 import { renderPagination } from './Pagination.js';
 import { getOrderedColumns, loadTablePreferences, renderTablePreferencesMenu, saveTablePreferences } from './TablePreferences.js';
 
+const T = {
+    caseYear: '\u0631\u0642\u0645 \u0627\u0644\u0637\u0639\u0646 / \u0627\u0644\u0633\u0646\u0629',
+    court: '\u0627\u0644\u0645\u062d\u0643\u0645\u0629 / \u0627\u0644\u062f\u0627\u0626\u0631\u0629',
+    subject: '\u0627\u0644\u0645\u0648\u0636\u0648\u0639',
+    plaintiff: '\u0627\u0644\u0645\u062f\u0639\u064a / \u0627\u0644\u0637\u0627\u0639\u0646',
+    defendant: '\u0627\u0644\u0645\u062f\u0639\u0649 \u0639\u0644\u064a\u0647 / \u0627\u0644\u0645\u0637\u0639\u0648\u0646 \u0636\u062f\u0647',
+    status: '\u0627\u0644\u062d\u0627\u0644\u0629',
+    lastSession: '\u0622\u062e\u0631 \u062c\u0644\u0633\u0629 / \u0642\u0631\u0627\u0631',
+    nextAction: '\u0627\u0644\u0625\u062c\u0631\u0627\u0621 \u0627\u0644\u0642\u0627\u062f\u0645',
+    fileLocation: '\u0645\u0643\u0627\u0646 \u0627\u0644\u0645\u0644\u0641',
+    judgmentClassification: '\u062a\u0635\u0646\u064a\u0641 \u0627\u0644\u062d\u0643\u0645',
+    actions: '\u0625\u062c\u0631\u0627\u0621\u0627\u062a',
+    pageTitle: '\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0637\u0639\u0648\u0646 \u0648\u0627\u0644\u0642\u0636\u0627\u064a\u0627',
+    pageSubtitle: '\u0625\u062f\u0627\u0631\u0629 \u0648\u062a\u0635\u0641\u064a\u0629 \u0648\u062a\u0639\u062f\u064a\u0644 \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0642\u0636\u0627\u064a\u0627',
+    importExcel: '\u0627\u0633\u062a\u064a\u0631\u0627\u062f Excel',
+    deleteSelected: '\u062d\u0630\u0641 \u0627\u0644\u0645\u062d\u062f\u062f',
+    deleteAll: '\u062d\u0630\u0641 \u0627\u0644\u0643\u0644',
+    newCase: '\u0642\u0636\u064a\u0629 \u062c\u062f\u064a\u062f\u0629',
+    searchPlaceholder: '\u0628\u062d\u062b \u0628\u0631\u0642\u0645 \u0627\u0644\u0637\u0639\u0646\u060c \u0627\u0644\u0645\u062d\u0643\u0645\u0629\u060c \u0627\u0644\u062e\u0635\u0648\u0645...',
+    columns: '\u0623\u0639\u0645\u062f\u0629 \u0627\u0644\u062c\u062f\u0648\u0644',
+    allStatuses: '\u0643\u0644 \u0627\u0644\u062d\u0627\u0644\u0627\u062a',
+    active: '\u0646\u0634\u0637',
+    activeCase: '\u0645\u062a\u062f\u0627\u0648\u0644',
+    judged: '\u0645\u062d\u0643\u0648\u0645 \u0641\u064a\u0647',
+    reserved: '\u0645\u062d\u062c\u0648\u0632 \u0644\u0644\u062d\u0643\u0645',
+    referred: '\u0645\u062d\u0627\u0644',
+    suspendedAdmin: '\u0645\u0648\u0642\u0648\u0641 \u062c\u0632\u0627\u0626\u064a\u0627',
+    archived: '\u0645\u0624\u0631\u0634\u0641',
+    newStatus: '\u062c\u062f\u064a\u062f',
+    page: '\u0627\u0644\u0635\u0641\u062d\u0629',
+    of: '\u0645\u0646',
+    loadingCases: '\u062c\u0627\u0631\u064a \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0642\u0636\u0627\u064a\u0627...',
+    loadingFailed: '\u0641\u0634\u0644 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a. \u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u062a\u0635\u0627\u0644\u0643.',
+    unspecified: '\u063a\u064a\u0631 \u0645\u062d\u062f\u062f',
+    noSearchResults: '\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0646\u062a\u0627\u0626\u062c \u0644\u0644\u0628\u062d\u062b \u0627\u0644\u0645\u062d\u062f\u062f',
+    noCases: '\u0644\u0627 \u062a\u0648\u062c\u062f \u0642\u0636\u0627\u064a\u0627 \u0644\u0644\u0639\u0631\u0636',
+    countLabel: '\u0642\u0636\u064a\u0629 \u0645\u0646',
+    viewDetails: '\u0639\u0631\u0636 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644',
+    edit: '\u062a\u0639\u062f\u064a\u0644',
+    delete: '\u062d\u0630\u0641',
+    deleteSingleConfirm: '\u0647\u0644 \u062a\u0631\u064a\u062f \u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u0642\u0636\u064a\u0629 \u0646\u0647\u0627\u0626\u064a\u0627\u061f',
+    deleteMultiPrefix: '\u0647\u0644 \u062a\u0631\u064a\u062f \u062d\u0630\u0641',
+    deleteMultiSuffix: '\u0642\u0636\u064a\u0629 \u0646\u0647\u0627\u0626\u064a\u0627\u061f',
+    deleteFailed: '\u0641\u0634\u0644 \u0627\u0644\u062d\u0630\u0641:',
+    noCasesToDelete: '\u0644\u0627 \u062a\u0648\u062c\u062f \u0642\u0636\u0627\u064a\u0627 \u0644\u0644\u062d\u0630\u0641.',
+    deleteAllWarningPrefix: '\u062a\u062d\u0630\u064a\u0631: \u0633\u064a\u062a\u0645 \u062d\u0630\u0641 \u062c\u0645\u064a\u0639 \u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0648\u0639\u062f\u062f\u0647\u0627',
+    deleteAllWarningSuffix: '\u0647\u0644 \u0623\u0646\u062a \u0645\u062a\u0623\u0643\u062f\u061f',
+    deleteAllFinal: '\u062a\u0623\u0643\u064a\u062f \u0646\u0647\u0627\u0626\u064a: \u062d\u0630\u0641 \u0643\u0644 \u0627\u0644\u0642\u0636\u0627\u064a\u0627\u061f',
+    deleteAllSuccessPrefix: '\u062a\u0645 \u062d\u0630\u0641',
+    deleteAllSuccessSuffix: '\u0642\u0636\u064a\u0629 \u0628\u0646\u062c\u0627\u062d.'
+};
+
 const CASE_COLUMN_DEFS = [
-    { key: 'case_year', label: 'رقم الطعن / السنة', visible: true },
-    { key: 'court', label: 'المحكمة / الدائرة', visible: true },
-    { key: 'subject', label: 'الموضوع', visible: false },
-    { key: 'plaintiff', label: 'المدعي / الطاعن', visible: true },
-    { key: 'defendant', label: 'المدعى عليه / المطعون ضده', visible: true },
-    { key: 'status', label: 'الحالة', visible: true },
-    { key: 'lastSession', label: 'آخر جلسة / قرار', visible: true },
-    { key: 'nextAction', label: 'الإجراء القادم', visible: false },
-    { key: 'fileLocation', label: 'مكان الملف', visible: false },
-    { key: 'judgmentClassification', label: 'تصنيف الحكم', visible: false },
-    { key: 'actions', label: 'إجراءات', visible: true }
+    { key: 'case_year', label: T.caseYear, visible: true },
+    { key: 'court', label: T.court, visible: true },
+    { key: 'subject', label: T.subject, visible: false },
+    { key: 'plaintiff', label: T.plaintiff, visible: true },
+    { key: 'defendant', label: T.defendant, visible: true },
+    { key: 'status', label: T.status, visible: true },
+    { key: 'lastSession', label: T.lastSession, visible: true },
+    { key: 'nextAction', label: T.nextAction, visible: false },
+    { key: 'fileLocation', label: T.fileLocation, visible: false },
+    { key: 'judgmentClassification', label: T.judgmentClassification, visible: false },
+    { key: 'actions', label: T.actions, visible: true }
 ];
 
 export class CasesView {
@@ -35,50 +87,48 @@ export class CasesView {
         this.container.innerHTML = `
             <div class="page-header">
                 <div class="header-titles">
-                    <h2><ion-icon name="briefcase-outline" style="vertical-align: middle; margin-left: 8px;"></ion-icon> إدارة الطعون والقضايا</h2>
-                    <p>إدارة وتصفية وتعديل ملفات القضايا</p>
+                    <h2><ion-icon name="briefcase-outline" style="vertical-align: middle; margin-left: 8px;"></ion-icon> ${T.pageTitle}</h2>
+                    <p>${T.pageSubtitle}</p>
                 </div>
                 <div class="header-actions" style="display:flex; gap: 12px; flex-wrap:wrap;">
-                    <button class="btn btn-secondary" id="btn-import-cases"><ion-icon name="cloud-download-outline"></ion-icon> استيراد Excel</button>
-                    <button class="btn btn-secondary" id="btn-delete-selected" style="color:var(--danger); display:none;"><ion-icon name="trash-outline"></ion-icon> حذف المحدد (<span id="sel-count">0</span>)</button>
-                    <button class="btn btn-secondary" id="btn-delete-all" style="color:var(--danger);"><ion-icon name="nuclear-outline"></ion-icon> حذف الكل</button>
-                    <button class="btn btn-primary" id="btn-new-case"><ion-icon name="add"></ion-icon> قضية جديدة</button>
+                    <button class="btn btn-secondary" id="btn-import-cases"><ion-icon name="cloud-download-outline"></ion-icon> ${T.importExcel}</button>
+                    <button class="btn btn-secondary" id="btn-delete-selected" style="color:var(--danger); display:none;"><ion-icon name="trash-outline"></ion-icon> ${T.deleteSelected} (<span id="sel-count">0</span>)</button>
+                    <button class="btn btn-secondary" id="btn-delete-all" style="color:var(--danger);"><ion-icon name="nuclear-outline"></ion-icon> ${T.deleteAll}</button>
+                    <button class="btn btn-primary" id="btn-new-case"><ion-icon name="add"></ion-icon> ${T.newCase}</button>
                 </div>
             </div>
 
             <div style="padding: 16px 32px 0; display: flex; gap: 12px; align-items:center; flex-wrap:wrap;">
                 <div style="position:relative; flex:1; min-width: 250px;">
                     <ion-icon name="search-outline" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:1.1rem;"></ion-icon>
-                    <input type="text" id="cases-search" placeholder="بحث برقم الطعن، المحكمة، الخصوم..." 
-                        style="width:100%; padding:10px 42px 10px 14px; background:var(--surface); border:1px solid var(--glass-border); border-radius:var(--radius-md); color:var(--text-main); outline:none; font-size:0.95rem;">
+                    <input type="text" id="cases-search" placeholder="${T.searchPlaceholder}" style="width:100%; padding:10px 42px 10px 14px; background:var(--surface); border:1px solid var(--glass-border); border-radius:var(--radius-md); color:var(--text-main); outline:none; font-size:0.95rem;">
                 </div>
 
                 <div style="position:relative;" id="col-toggle-wrapper">
                     <button class="btn btn-secondary" id="btn-toggle-cols" style="padding:8px 12px; display:flex; gap:6px; align-items:center; border-radius:8px; background:var(--surface); border:1px solid var(--glass-border); color:var(--text-main); font-size:0.9rem;">
-                        <ion-icon name="options-outline"></ion-icon> أعمدة الجدول
+                        <ion-icon name="options-outline"></ion-icon> ${T.columns}
                     </button>
                     <div id="col-toggle-menu" class="glass-panel table-pref-menu" style="display:none; position:absolute; top:110%; right:0; z-index:100; min-width:280px;"></div>
                 </div>
 
                 <select id="cases-filter-status" style="padding:10px 14px; background:var(--surface); border:1px solid var(--glass-border); border-radius:var(--radius-md); color:var(--text-main); outline:none;">
-                    <option value="">كل الحالات</option>
-                    <option value="active">نشط</option>
-                    <option value="متداول">متداول</option>
-                    <option value="محكوم فيه">محكوم فيه</option>
-                    <option value="محجوز للحكم">محجوز للحكم</option>
-                    <option value="محال">محال</option>
-                    <option value="suspended_administrative">موقوف جزائيًا</option>
-                    <option value="archived">مؤرشف</option>
-                    <option value="new">جديد</option>
+                    <option value="">${T.allStatuses}</option>
+                    <option value="active">${T.active}</option>
+                    <option value="متداول">${T.activeCase}</option>
+                    <option value="محكوم فيه">${T.judged}</option>
+                    <option value="محجوز للحكم">${T.reserved}</option>
+                    <option value="محال">${T.referred}</option>
+                    <option value="suspended_administrative">${T.suspendedAdmin}</option>
+                    <option value="archived">${T.archived}</option>
+                    <option value="new">${T.newStatus}</option>
                 </select>
                 <span id="cases-count-label" style="color:var(--text-muted); font-size:0.9rem;"></span>
             </div>
 
             <div class="page-body">
                 <div id="cases-grid-container"></div>
-
                 <div class="pagination-shell">
-                    <span id="page-info" class="pagination-info">الصفحة 1</span>
+                    <span id="page-info" class="pagination-info">${T.page} 1</span>
                     <div class="pagination-controls" id="cases-pagination"></div>
                 </div>
             </div>
@@ -97,7 +147,7 @@ export class CasesView {
         gridContainer.innerHTML = `
             <div class="loader-container" style="min-height:200px;">
                 <div class="loader"></div>
-                <p style="margin-top:10px; color:var(--text-muted);">جارٍ تحميل القضايا...</p>
+                <p style="margin-top:10px; color:var(--text-muted);">${T.loadingCases}</p>
             </div>`;
 
         try {
@@ -112,7 +162,7 @@ export class CasesView {
             this.applyFilters();
         } catch (error) {
             console.error('Failed to load cases:', error);
-            gridContainer.innerHTML = `<div class="empty-state"><ion-icon name="cloud-offline-outline"></ion-icon><p>فشل تحميل البيانات. تحقق من اتصالك.</p></div>`;
+            gridContainer.innerHTML = `<div class="empty-state"><ion-icon name="cloud-offline-outline"></ion-icon><p>${T.loadingFailed}</p></div>`;
         }
     }
 
@@ -146,17 +196,17 @@ export class CasesView {
 
     getStatusBadge(status) {
         const map = {
-            active: ['status-success', 'نشط'],
-            متداول: ['status-success', 'متداول'],
-            'محكوم فيه': ['status-default', 'محكوم فيه'],
-            'محجوز للحكم': ['status-blue', 'محجوز للحكم'],
-            محال: ['status-warning', 'محال'],
-            new: ['status-blue', 'جديد'],
-            suspended_administrative: ['status-warning', 'موقوف جزائيًا'],
-            archived: ['status-default', 'مؤرشف'],
+            active: ['status-success', T.active],
+            'متداول': ['status-success', T.activeCase],
+            'محكوم فيه': ['status-default', T.judged],
+            'محجوز للحكم': ['status-blue', T.reserved],
+            'محال': ['status-warning', T.referred],
+            new: ['status-blue', T.newStatus],
+            suspended_administrative: ['status-warning', T.suspendedAdmin],
+            archived: ['status-default', T.archived]
         };
 
-        const [cls, label] = map[status] || ['status-default', status || 'غير محدد'];
+        const [cls, label] = map[status] || ['status-default', status || T.unspecified];
         return `<span class="badge-status ${cls}">${label}</span>`;
     }
 
@@ -185,9 +235,9 @@ export class CasesView {
             judgmentClassification: () => caseData.judgmentClassification || '-',
             actions: () => `
                 <div style="display:flex; gap:6px;">
-                    <button class="btn btn-icon btn-view-case" data-id="${caseData.id}" title="عرض التفاصيل" style="color:var(--primary);"><ion-icon name="eye-outline"></ion-icon></button>
-                    <button class="btn btn-icon btn-edit-case" data-id="${caseData.id}" title="تعديل" style="color:var(--warning);"><ion-icon name="create-outline"></ion-icon></button>
-                    <button class="btn btn-icon btn-delete-case" data-id="${caseData.id}" title="حذف" style="color:var(--danger);"><ion-icon name="trash-outline"></ion-icon></button>
+                    <button class="btn btn-icon btn-view-case" data-id="${caseData.id}" title="${T.viewDetails}" style="color:var(--primary);"><ion-icon name="eye-outline"></ion-icon></button>
+                    <button class="btn btn-icon btn-edit-case" data-id="${caseData.id}" title="${T.edit}" style="color:var(--warning);"><ion-icon name="create-outline"></ion-icon></button>
+                    <button class="btn btn-icon btn-delete-case" data-id="${caseData.id}" title="${T.delete}" style="color:var(--danger);"><ion-icon name="trash-outline"></ion-icon></button>
                 </div>
             `
         };
@@ -205,7 +255,7 @@ export class CasesView {
             gridContainer.innerHTML = `
                 <div class="empty-state" style="min-height:200px;">
                     <ion-icon name="document-outline"></ion-icon>
-                    <p>${this.searchQuery ? 'لم يتم العثور على نتائج للبحث المحدد' : 'لا توجد قضايا للعرض'}</p>
+                    <p>${this.searchQuery ? T.noSearchResults : T.noCases}</p>
                 </div>`;
             this.updatePaginationUI();
             return;
@@ -244,13 +294,13 @@ export class CasesView {
 
     updateCountLabel() {
         const label = this.container.querySelector('#cases-count-label');
-        if (label) label.textContent = `${this.filteredCases.length} قضية من ${this.allCases.length}`;
+        if (label) label.textContent = `${this.filteredCases.length} ${T.countLabel} ${this.allCases.length}`;
     }
 
     updatePaginationUI() {
         const totalPages = Math.max(1, Math.ceil(this.filteredCases.length / this.pageSize));
         const info = this.container.querySelector('#page-info');
-        if (info) info.textContent = `الصفحة ${this.currentPage} من ${totalPages}`;
+        if (info) info.textContent = `${T.page} ${this.currentPage} ${T.of} ${totalPages}`;
 
         renderPagination(this.container.querySelector('#cases-pagination'), {
             currentPage: this.currentPage,
@@ -352,7 +402,7 @@ export class CasesView {
     async deleteCases(ids) {
         if (!ids?.length) return;
 
-        const message = ids.length === 1 ? 'هل تريد حذف هذه القضية نهائيًا؟' : `هل تريد حذف ${ids.length} قضية نهائيًا؟`;
+        const message = ids.length === 1 ? T.deleteSingleConfirm : `${T.deleteMultiPrefix} ${ids.length} ${T.deleteMultiSuffix}`;
         if (!confirm(message)) return;
 
         try {
@@ -382,19 +432,19 @@ export class CasesView {
             document.dispatchEvent(new CustomEvent('cases-updated'));
         } catch (error) {
             console.error('Delete failed:', error);
-            alert('فشل الحذف: ' + error.message);
+            alert(`${T.deleteFailed} ${error.message}`);
         }
     }
 
     async deleteAllCases() {
         const total = this.allCases.length;
         if (total === 0) {
-            alert('لا توجد قضايا للحذف.');
+            alert(T.noCasesToDelete);
             return;
         }
 
-        if (!confirm(`تحذير: سيتم حذف جميع القضايا وعددها ${total}. هل أنت متأكد؟`)) return;
-        if (!confirm('تأكيد نهائي: حذف كل القضايا؟')) return;
+        if (!confirm(`${T.deleteAllWarningPrefix} ${total}. ${T.deleteAllWarningSuffix}`)) return;
+        if (!confirm(T.deleteAllFinal)) return;
 
         try {
             if (this.app.storage.teamId) {
@@ -419,10 +469,10 @@ export class CasesView {
             this.applyFilters();
             this.updateDeleteSelectedBtn();
             document.dispatchEvent(new CustomEvent('cases-updated'));
-            alert(`تم حذف ${total} قضية بنجاح.`);
+            alert(`${T.deleteAllSuccessPrefix} ${total} ${T.deleteAllSuccessSuffix}`);
         } catch (error) {
             console.error('Delete all failed:', error);
-            alert('فشل الحذف: ' + error.message);
+            alert(`${T.deleteFailed} ${error.message}`);
         }
     }
 
