@@ -3,191 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLA - منصة إدارة الطعون والجلسات</title>
-    
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="icon-192.png">
-
-    <!-- Google Fonts: Cairo - Full Weight Range -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS (XLSX) for Excel/CSV import -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Custom CSS -->
+    <title>SLA V2 | منصة التشغيل القضائي الذكية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Kufi+Arabic:wght@300;400;600;700&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body class="light-mode">
-    <div id="app">
-        <!-- Auth View -->
-        <div id="auth-view" class="view active">
-            <div class="auth-container">
-                <div class="auth-box glass-panel">
-                    <h2>تسجيل الدخول</h2>
-                    <p>أهلاً بك في منصة إدارة الطعون والجلسات</p>
-                    <form id="login-form">
-                        <div class="form-group">
-                            <label>البريد الإلكتروني</label>
-                            <input type="email" id="login-email" required placeholder="admin@example.com">
-                        </div>
-                        <div class="form-group">
-                            <label>كلمة المرور</label>
-                            <input type="password" id="login-password" required placeholder="••••••••">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">دخول <i class="fas fa-sign-in-alt"></i></button>
-                    </form>
-                    <div id="auth-error" class="error-text"></div>
+<body class="dark-theme">
+    <div id="initial-loader" style="position: fixed; inset: 0; background: var(--background); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+        <div class="loader-container"><div class="loader"></div><p>جاري التحقق من الهوية...</p></div>
+    </div>
+
+    <div id="auth-container" class="modal-overlay" style="z-index: 9999; background: var(--background); display: none;">
+        <div class="modal-content fade-in" style="max-width: 400px; text-align: center;">
+            <div style="margin-bottom: 30px;">
+                <ion-icon name="shield-checkmark-outline" style="font-size: 48px; color: var(--primary);"></ion-icon>
+                <h2 style="margin-top: 16px;">تسجيل الدخول للنظام</h2>
+                <p style="color: var(--text-muted); font-size: 0.9em; margin-top: 8px;">منصة التشغيل القضائي الذكية (SLA V2)</p>
+            </div>
+
+            <div class="form-group" style="text-align: right; margin-bottom: 16px;">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="auth-email" placeholder="أدخل بريدك الإلكتروني" style="width: 100%; text-align: left;" dir="ltr">
+            </div>
+            <div class="form-group" style="text-align: right; margin-bottom: 24px;">
+                <label>كلمة المرور</label>
+                <input type="password" id="auth-password" placeholder="أدخل كلمة المرور" style="width: 100%; text-align: left;" dir="ltr">
+            </div>
+
+            <div id="auth-error-msg" style="color: var(--danger); font-size: 0.85em; margin-bottom: 16px; display: none;"></div>
+
+            <button class="btn btn-primary" id="btn-login" style="width: 100%; justify-content: center; margin-bottom: 12px;">تسجيل الدخول <ion-icon name="log-in-outline"></ion-icon></button>
+            <button class="btn" id="btn-register" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white;">إنشاء حساب جديد</button>
+        </div>
+    </div>
+
+    <div id="pending-container" class="modal-overlay" style="z-index: 9998; background: var(--background); display: none;">
+        <div class="modal-content fade-in" style="max-width: 500px; text-align: center;">
+            <ion-icon name="time-outline" style="font-size: 64px; color: var(--warning); margin-bottom: 20px;"></ion-icon>
+            <h2 style="margin-bottom: 16px;">حسابك قيد المراجعة</h2>
+            <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;">
+                لقد تم تسجيل حسابك بنجاح، لكنه بانتظار موافقة مدير النظام. يرجى التواصل مع الإدارة لتفعيل الحساب وتخصيص الدائرة الخاصة بك.
+            </p>
+            <button class="btn btn-secondary" id="btn-logout-pending"><ion-icon name="log-out-outline"></ion-icon> تسجيل الخروج وإلغاء</button>
+        </div>
+    </div>
+
+    <div id="app" class="glass-container" style="display: none;">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <ion-icon name="scale-outline"></ion-icon>
+                    <span>SLA V2</span>
                 </div>
             </div>
-        </div>
+            <ul class="nav-links">
+                <li class="active" data-page="dashboard">
+                    <ion-icon name="grid-outline"></ion-icon>
+                    <span>الرئيسية</span>
+                </li>
+                <li data-page="cases">
+                    <ion-icon name="briefcase-outline"></ion-icon>
+                    <span>القضايا</span>
+                </li>
+                <li data-page="sessions">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <span>أجندة الجلسات</span>
+                </li>
+                <li data-page="judgments">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <span>أجندة الأحكام</span>
+                </li>
+                <li data-page="tasks">
+                    <ion-icon name="list-outline"></ion-icon>
+                    <span>المهام</span>
+                </li>
+                <li data-page="archive">
+                    <ion-icon name="archive-outline"></ion-icon>
+                    <span>الأرشيف</span>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <ul>
+                    <li data-page="settings">
+                        <ion-icon name="settings-outline"></ion-icon>
+                        <span>الإعدادات</span>
+                    </li>
+                    <li data-page="admin" id="nav-admin" style="display: none;">
+                        <ion-icon name="shield-half-outline" style="color: var(--danger);"></ion-icon>
+                        <span style="color: var(--danger);">لوحة الإدارة</span>
+                    </li>
+                    <li id="btn-logout-sidebar" style="margin-top: 10px; opacity: 0.8;">
+                        <ion-icon name="log-out-outline"></ion-icon>
+                        <span>تسجيل الخروج</span>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-        <!-- Main Dashboard View -->
-        <div id="main-view" class="view hidden layout-container active">
-            <!-- Sidebar -->
-            <nav class="sidebar">
-                <div class="sidebar-header" style="border-bottom:none; padding-bottom:5px;">
-                    <i class="fas fa-balance-scale" style="font-size: 2.5rem; color: var(--accent-color);"></i>
-                </div>
-                
-                <div class="sidebar-cta">
-                    <button id="quick-add-case" class="btn-new-case">
-                        <i class="fas fa-plus"></i> <span>قـضـيـة جـديـدَة</span>
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="top-search-shell">
+                    <div class="search-box" id="global-search-box">
+                        <ion-icon name="search-outline"></ion-icon>
+                        <input type="text" id="global-search-input" placeholder="ابحث مباشرة في القضايا والجلسات..." autocomplete="off" spellcheck="false">
+                        <div class="global-search-results" id="global-search-results" hidden></div>
+                    </div>
+                    <button class="btn top-command-btn" id="global-command-trigger" type="button" title="لوحة الأوامر السريعة — Ctrl+K أو Alt+K أو Ctrl+Shift+K">
+                        <ion-icon name="sparkles-outline"></ion-icon>
+                        <span>الأوامر</span>
+                        <span class="kbd-pill">Ctrl K</span>
                     </button>
                 </div>
 
-                <ul class="nav-links">
-                    <li><a href="#" data-route="dashboard" class="active"><i class="fas fa-chart-pie"></i> <span>لوحة التحكم</span></a></li>
-                    <li><a href="#" data-route="appeals"><i class="fas fa-gavel"></i> <span>الدعاوى والطعون</span></a></li>
-                    <li><a href="#" data-route="agenda"><i class="fas fa-calendar-alt"></i> <span>أجندة الجلسات</span></a></li>
-                    <li><a href="#" data-route="sessions"><i class="fas fa-calendar-check"></i> <span>سجل الجلسات</span></a></li>
-                    <li><a href="#" data-route="tasks"><i class="fas fa-tasks"></i> <span>إدارة المهام</span></a></li>
-                    <li><a href="#" data-route="memos"><i class="fas fa-file-signature"></i> <span>المذكرات القانونية</span></a></li>
-                    <li><a href="#" data-route="library"><i class="fas fa-book-reader"></i> <span>المكتبة والبحوث</span></a></li>
-                    <li><a href="#" data-route="circulars"><i class="fas fa-bullhorn"></i> <span>القرارات والتعاميم</span></a></li>
-                    <li><a href="#" data-route="rolls"><i class="fas fa-scroll"></i> <span>رولات الجلسات (PDF)</span></a></li>
-                    <li><a href="#" data-route="attachments"><i class="fas fa-archive"></i> <span>الأرشيف الرقمي</span></a></li>
-                    <li><a href="#" data-route="reports"><i class="fas fa-chart-bar"></i> <span>التقارير الذكية</span></a></li>
-                    <li><a href="#" data-route="settings"><i class="fas fa-sliders-h"></i> <span>الإعدادات العامة</span></a></li>
-                </ul>
-                <div class="sidebar-footer">
-                    <button id="logout-btn" class="btn btn-block"><i class="fas fa-sign-out-alt"></i> <span>تسجيل الخروج</span></button>
+                <div class="user-profile">
+                    <div class="notifications" title="التنبيهات والمهام">
+                        <ion-icon name="notifications-outline"></ion-icon>
+                        <span class="badge" style="display:none;">0</span>
+                    </div>
+                    <button id="btn-toggle-theme" title="تغيير الثيم" style="background:transparent; border:none; color:inherit; cursor:pointer; font-size:1.3rem; padding:5px;">
+                        <ion-icon name="color-palette-outline"></ion-icon>
+                    </button>
+                    <div class="avatar"></div>
                 </div>
-            </nav>
+            </header>
 
-            <!-- Main Content Area -->
-            <main class="main-content">
-                <!-- Header -->
-                <header class="top-header">
-                    <div class="header-right" style="display:flex; align-items:center; gap:15px;">
-                        <button id="toggle-sidebar" class="icon-btn" style="color:var(--nav-text);"><i class="fas fa-bars"></i></button>
-                        <div class="app-logo-text">
-                            <h3 id="app-main-title" style="margin:0; font-weight:800; color:#ffffff; font-size:1.1rem; letter-spacing:1px; line-height:1.2; font-family:var(--font-primary);">نظام إدارة الطعون</h3>
-                            <small id="app-sub-title" style="color:rgba(245,158,11,0.9); font-size:0.7rem; letter-spacing:1px;">مرحباً بكم في المنصة القضائية</small>
-                        </div>
-                    </div>
-
-                    <div class="header-center" style="flex:1; display:flex; justify-content:center; position:relative;">
-                        <div class="header-search" style="width:100%; max-width:600px;">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="global-search-input" placeholder="البحث برقم الطعن، الخصم، الموضوع..." autocomplete="off">
-                        </div>
-                        <div id="global-search-results" class="hidden section-card" style="position:absolute; top:50px; left:0; right:0; margin:0 auto; width:100%; max-width:600px; padding:10px; z-index:3000; max-height:50vh; overflow-y:auto; border-top:3px solid var(--accent-color);"></div>
-                    </div>
-
-                    <div class="header-left" style="display:flex; align-items:center; gap:15px;">
-                        <button class="icon-btn"><i class="fas fa-bell"></i></button>
-                        <button id="theme-toggle" class="icon-btn"><i class="fas fa-moon"></i></button>
-                        <div class="user-profile">
-                            <div style="text-align:right;">
-                                <div id="user-name" style="font-weight:700; font-size:0.9rem; color:#ffffff;">المستشار</div>
-                                <div id="user-role" style="font-size:0.72rem; color:rgba(245,158,11,0.9);">مستشار قانوني</div>
-                            </div>
-                            <div class="user-avatar" style="background:var(--accent-color); color:white;">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <!-- Dynamic Content Container -->
-                <div id="content-container" class="content-container">
-                    <!-- Views will be injected here by app.js -->
-                </div>
-            </main>
-        </div>
-    </div>
-    
-    <!-- Toast Notifications Container -->
-    <div id="toast-container"></div>
-
-    <!-- PWA Install Prompt -->
-    <div id="pwa-install-prompt" class="hidden">
-        <div class="pwa-content">
-            <div class="pwa-icon"><i class="fas fa-layer-group"></i></div>
-            <div class="pwa-text">
-                <h4 style="margin:0; margin-bottom:5px; color:var(--text-primary); font-size:1.05rem;">ثبّت التطبيق (SLA)</h4>
-                <p style="margin:0; color:var(--text-secondary); font-size:0.85rem;">يمكنك تثبيت هذا التطبيق على جهازك للوصول السريع والعمل كبرنامج مستقل.</p>
-            </div>
-        </div>
-        <div class="pwa-actions">
-            <button id="pwa-install-btn" class="btn btn-primary">تثبيت التطبيق <i class="fas fa-download"></i></button>
-            <button id="pwa-dismiss-btn" class="btn btn-secondary">عدم الإظهار مجدداً</button>
-        </div>
-    </div>
-
-    <!-- Application Scripts -->
-    <script type="module" src="js/config.js"></script>
-    <!-- Modals Container -->
-    <div id="modals-container">
-        <!-- Data Import Wizard Modal -->
-        <div id="import-wizard-modal" class="modal-backdrop hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; display:flex; justify-content:center; align-items:center;">
-            <div class="section-card modal-content" style="width: 97%; max-width: 1000px; padding: 30px; max-height: 92vh; overflow-y: auto;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:15px;">
-                    <h3 style="color:var(--text-primary);"><i class="fas fa-file-import" style="color:var(--accent-color);"></i> &nbsp;معالج استيراد البيانات</h3>
-                    <button id="close-import-wizard" class="icon-btn" style="color:var(--text-muted);"><i class="fas fa-times"></i></button>
-                </div>
-                
-                <!-- Step 1: Upload File -->
-                <div id="import-step-1">
-                    <p style="margin-bottom:15px; color:var(--text-muted);">قم برفع ملف Excel (.xlsx) أو CSV يحتوي على بيانات الطعون.</p>
-                    <div style="border: 2px dashed var(--accent-color); padding: 40px; text-align: center; border-radius: 12px; background: #f8fafc; cursor:pointer;" id="import-drop-zone">
-                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 15px;"></i>
-                        <h4>اسحب وأفلت الملف هنا أو اضغط للاختيار</h4>
-                        <input type="file" id="import-file-input" accept=".xlsx, .xls, .csv" style="display:none;">
-                    </div>
-                </div>
-
-                <!-- Step 2: Column Mapping -->
-                <div id="import-step-2" class="hidden">
-                    <p style="margin-bottom:15px; color:var(--text-muted);">يرجى مطابقة أعمدة الملف الخاص بك مع حقول النظام الأساسية.</p>
-                    <div id="mapping-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
-                        <!-- Mapping fields will be injected here -->
-                    </div>
-                    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-                        <button id="import-back-btn" class="btn" style="background:#64748b; color:white;"><i class="fas fa-arrow-right"></i> السابق</button>
-                        <button id="import-preview-btn" class="btn btn-primary" style="background:var(--accent-color);">معاينة البيانات <i class="fas fa-arrow-left"></i></button>
-                    </div>
-                </div>
-
-                <!-- Step 3: Preview and Confirm -->
-                <div id="import-step-3" class="hidden">
-                    <p style="margin-bottom:15px; color:var(--text-secondary); font-weight:600;">معاينة أول 5 صفوف — إجمالي: <span id="import-total-stats" style="color:var(--accent-color);">0</span></p>
-                    <div style="overflow-x:auto; margin-bottom:20px;">
-                        <table class="premium-table" id="import-preview-table">
-                            <thead></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end; gap:10px;">
-                        <button id="import-back-map-btn" class="btn" style="background:#64748b; color:white;"><i class="fas fa-arrow-right"></i> تعديل المطابقة</button>
-                        <button id="import-confirm-btn" class="btn btn-primary" style="background:var(--success-color);">تأكيد واستيراد <i class="fas fa-check-circle"></i></button>
-                    </div>
+            <div id="page-content" class="fade-in">
+                <div class="loader-container">
+                    <div class="loader"></div>
+                    <p>جاري تحميل منصة التشغيل...</p>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
+
+    <script src="js/runtime-config.js"></script>
     <script type="module" src="js/app.js"></script>
+    <script>
+      const savedTheme = localStorage.getItem('SLA_THEME') || 'dark';
+      if(savedTheme === 'gold') document.documentElement.classList.add('theme-gold');
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('btn-toggle-theme');
+        if(btn) btn.addEventListener('click', () => {
+          const isGold = document.documentElement.classList.toggle('theme-gold');
+          localStorage.setItem('SLA_THEME', isGold ? 'gold' : 'dark');
+        });
+      });
+    </script>
 </body>
 </html>
